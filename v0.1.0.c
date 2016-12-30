@@ -3,13 +3,13 @@
 #include <time.h>//time_tt
 #include <stdlib.h>
 
-char board[3][3]; /* This array is responsible for storing current gamestate. It is available globally in order to allow*/
-typedef enum bool {false=0, true=1} bool;
+char board[3][3]; /* This array is responsible for storing current gamestate.*/
+typedef enum { false, true } bool;
 
 
 void printer(void);
-int ruch(char, bool);
-int wincond(void);
+int move(char, bool);
+int win_condition(void);
 int pvp(int choice);
 int analyze();
 
@@ -21,8 +21,14 @@ int main()
 	printf("Would you like to play against PC(1) or human?(1/2)");
 	do{
 		fgets(small_buffer, sizeof small_buffer, stdin);
-		choice= strtol(small_buffer,NULL,10);
+		choice = strtol(small_buffer,NULL,10);
 	}	while(choice!=1 && choice!=2);
+	/*Do-while loop presented above makes sure that end-user won't leave
+	 *start menu unless he choses a valid option. strtol is used as a further
+	 *security measure - since our strings are converted to valid numbers via
+	 *function and not some gimmicky ASCII substraction there is certain level
+	 *of comfort about malicious input from user.
+	*/
 	pvp(choice);
 	return 0;
 }
@@ -35,11 +41,11 @@ int pvp(int choice)
 	int response=0;//value returned by move() function
 	char buffer[20];
 	char small_buffer[3];
-	bool ruc=false;
-	char p1[1024]; /*Nazwa pierwszego gracza */
-	char p2[1024];/*Nazwa drugiego gracza */
+	bool current_player=false;
+	char p1[100]; //Player's name
+	char p2[100];//Player's name
 	time_t tt;//sprawdzamy czas od 01.01.1970
-	int i,p;
+	int i,p;//loop controlers
 	int new_game=0;
 	int input=0;
 	while(new_game<1){
@@ -52,7 +58,7 @@ int pvp(int choice)
 			for(p=0;p<3;p++)
 				board[i][p]='#';
 		}
-		printf("Hello? What is your name?\nName:");
+		printf("Hello! What is your name?\nName:");
 		fgets(p1, sizeof p1, stdin);
 		p1[strcspn(p1, "\n")] = 0;
 		if(choice==2){
@@ -63,57 +69,57 @@ int pvp(int choice)
 		/*Above code block(starting at first printf) is responsile for getting the player's name into two variables, p1 and p2
 		 *It accomplishes it's goal via fgets and strcspn functions. strcspn removes newline.*/
 		printf("Here's the board! Familiarize yourself with it.\n\n");
-		printer();/*Pokaz planszę na ekranie - plansza to zwykła tablica, którą będziemy modyfikować*/
+		printer();
 		if(seed%2==0){
 			printf("%s starts!\n", p2);
-			ruc=false;
+			current_player=false;
 		}else{
 			printf("%s starts!\n", p1);
-			ruc=true;
+			current_player=true;
 		}
 		for(i=0;i<9;i++)/*Można wykonać maksymalnie 9 ruchów by zapełnić planszę, dlatego i<9*/
 		{
 			if(choice==2){
-			printf("%s, which field would you like to fill?\n", ruc==true?p1:p2);
+			printf("%s, which field would you like to fill?\n", current_player==true?p1:p2);
 			fgets(buffer, sizeof buffer, stdin);
 			input= strtol(buffer,NULL,10);
-			response = ruch(input, ruc);/*Przechowujemy odpowiedź funkcji ruch w zmiennej response*/
+			response = move(input, current_player);/*Przechowujemy odpowiedź funkcji ruch w zmiennej response*/
 			while(response == 0) { /*Funkcja response zwraca 0 jeśli wprowadzono znak spoza dozwolonego zakresu.
 				Prosimy wtedy zawodnika o powtórzenie jego ruchu.*/
 				printf("Field you have chosen doesn't exist or is already occupied!\n");
 				fgets(buffer, sizeof buffer, stdin);
 				input= strtol(buffer,NULL,10);
-				response = ruch(input, ruc);
+				response = move(input, current_player);
 			}
-		} else if(ruc==true && choice==1){
+		} else if(current_player==true && choice==1){
 				printf("%s, which field would you like to fill?\n",p1);
 				fgets(buffer, sizeof buffer, stdin);
 				input= strtol(buffer,NULL,10);
-				response = ruch(input, ruc);/*Przechowujemy odpowiedź funkcji ruch w zmiennej response*/
+				response = move(input, current_player);/*Przechowujemy odpowiedź funkcji ruch w zmiennej response*/
 				while(response == 0) { /*Funkcja response zwraca 0 jeśli wprowadzono znak spoza dozwolonego zakresu.
 					Prosimy wtedy zawodnika o powtórzenie jego ruchu.*/
 					printf("Field you have chosen doesn't exist or is already occupied!\n");
 					fgets(buffer, sizeof buffer, stdin);
 					input= strtol(buffer,NULL,10);
-					response = ruch(input, ruc);
+					response = move(input, current_player);
 				}
-			} else if(ruc==false){
+			} else if(current_player==false){
 				input=analyze();
 				printf("AI chose field no. %d!\n",input);
-				response = ruch(input, ruc);/*Przechowujemy odpowiedź funkcji ruch w zmiennej response*/
+				response = move(input, current_player);/*Przechowujemy odpowiedź funkcji ruch w zmiennej response*/
 				while(response == 0) { /*Funkcja response zwraca 0 jeśli wprowadzono znak spoza dozwolonego zakresu.
 					Prosimy wtedy komputer o powtórzenie jego ruchu.*/
 				input=analyze();
-				response = ruch(input, ruc);}}
+				response = move(input, current_player);}}
 			printer();/*Pokaż planszę*/
-			ruc = !ruc;/*Zmiana wartości ruc pozwala przeciwnikowi na ruch w następnej turze(następnym obrocie pętli)*/
-			if(i>=4 && (wincond()==1 || wincond()==2)){
-				printf("%s won!\n", wincond()==1?p1:p2);
+			current_player = !current_player;/*Zmiana wartości ruc pozwala przeciwnikowi na ruch w następnej turze(następnym obrocie pętli)*/
+			if(i>=4 && (win_condition()==1 || win_condition()==2)){
+				printf("%s won!\n", win_condition()==1?p1:p2);
 				break;
-			}/*Wincond sprawdza warunek wygranej - jeśli któryś z graczy go spełni,
+			}/*win_condition sprawdza warunek wygranej - jeśli któryś z graczy go spełni,
 			zwraca identyfikator gracza i przerywa pętlę*/
 		}
-		if(wincond()==0)
+		if(win_condition()==0)
 			printf("Draw!\n");/*Jeśli na końcu gry nikt nie wygrał, wyświetl odpowiedni komunikat*/
 
 		printf("Would you like to play again?(Y/n)\n");
@@ -132,7 +138,7 @@ int pvp(int choice)
 
 }
 
-int ruch(char pole, bool gracz){
+int move(char pole, bool gracz){
 	int i,p;
 	for(i=0;i<3;i++){
 		for(p=0;p<3;p++){
@@ -150,7 +156,7 @@ void printer(void)
 	printf("%c %c %c\n%c %c %c\n%c %c %c \n \n", board[0][0], board[0][1], board[0][2],board[1][0], board[1][1], board[1][2], board[2][0], board[2][1], board[2][2]);
 	/*Pokaż na ekranie wszystkie elementy tablicy w odpowiedniej kolejności*/
 }
-int wincond(){
+int win_condition(){
 	int i,p;
 	for(i=0;i<3;i++){
 		for(p=0;p<3;p++){
