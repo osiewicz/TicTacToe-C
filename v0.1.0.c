@@ -3,15 +3,8 @@
 #include <time.h>//time_tt
 #include <stdlib.h>
 
-int seed;//randomizer seed;
-int response=0;//value returned by move() function
 char board[3][3]; /* This array is responsible for storing current gamestate. It is available globally in order to allow*/
-char p1[1024]; /*Nazwa pierwszego gracza */
-char p2[1024];/*Nazwa drugiego gracza */
-char buffer[20];
-char small_buffer[3];
 typedef enum bool {false=0, true=1} bool;
-	bool ruc=false;
 
 
 void printer(void);
@@ -22,6 +15,7 @@ int analyze();
 
 int main()
 {
+	char small_buffer[3];
 	int choice;
 	printf("Chcesz zagrać przeciw komputerowi(1) czy przeciw człowiekowi(2)?(1/2)");
 	do{
@@ -36,6 +30,13 @@ int main()
 
 
 int pvp(int choice){
+	int seed;//randomizer seed;
+	int response=0;//value returned by move() function
+	char buffer[20];
+	char small_buffer[3];
+	bool ruc=false;
+	char p1[1024]; /*Nazwa pierwszego gracza */
+	char p2[1024];/*Nazwa drugiego gracza */
 	time_t tt;//sprawdzamy czas od 01.01.1970
 	int i,p;
 	int new_game=0;
