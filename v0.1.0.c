@@ -17,19 +17,20 @@ int main()
 {
 	char small_buffer[3];
 	int choice;
-	printf("Chcesz zagrać przeciw komputerowi(1) czy przeciw człowiekowi(2)?(1/2)");
+	printf("Tictactoe v0.1.0");
+	printf("Would you like to play against PC(1) or human?(1/2)");
 	do{
 		fgets(small_buffer, sizeof small_buffer, stdin);
 		choice= strtol(small_buffer,NULL,10);
-	}
-	while(choice!=1 && choice!=2);
+	}	while(choice!=1 && choice!=2);
 	pvp(choice);
 	return 0;
 }
 
 
 
-int pvp(int choice){
+int pvp(int choice)
+{
 	int seed;//randomizer seed;
 	int response=0;//value returned by move() function
 	char buffer[20];
@@ -44,57 +45,60 @@ int pvp(int choice){
 	while(new_game<1){
 		seed = time(&tt);
 		srand(seed); /* Zmienna bez określonej wartości przyjmuje losowe wartości*/
-		if(choice==1)
-			strncpy(p2,"Komputer", sizeof(p2)-1);
+		if(choice==1){
+			strncpy(p2,"PC", sizeof(p2)-1);
+		}
 		for(i=0;i<3;i++){
 			for(p=0;p<3;p++)
-				board[i][p]='#';}
-		printf("Cześć! Podaj swoje imię:\nImię:");
-		fgets(p1, sizeof p1, stdin);
-		p1[strcspn(p1, "\n")] = 0; /*Usuwa newline z stdin w p1*/
-		fseek(stdin,0,SEEK_END);
-		if(choice==2){
-			printf("%s, jak ma na imię Twój przeciwnik?\nImię:", p1);
-			fgets(p2, sizeof p2, stdin);
-			p2[strcspn(p2, "\n")] = 0;/*Usuwa newline z stdin w p2*/
+				board[i][p]='#';
 		}
-		printf("Oto plansza! Zapoznajcie się z nią.\n\n");
+		printf("Hello? What is your name?\nName:");
+		fgets(p1, sizeof p1, stdin);
+		p1[strcspn(p1, "\n")] = 0;
+		if(choice==2){
+			printf("%s, how is your enemy called?\nName:", p1);
+			fgets(p2, sizeof p2, stdin);
+			p2[strcspn(p2, "\n")] = 0;
+		}
+		/*Above code block(starting at first printf) is responsile for getting the player's name into two variables, p1 and p2
+		 *It accomplishes it's goal via fgets and strcspn functions. strcspn removes newline.*/
+		printf("Here's the board! Familiarize yourself with it.\n\n");
 		printer();/*Pokaz planszę na ekranie - plansza to zwykła tablica, którą będziemy modyfikować*/
 		if(seed%2==0){
-			printf("Zaczyna %s!\n", p2);
+			printf("%s starts!\n", p2);
 			ruc=false;
 		}
 		else{
-			printf("Zaczyna %s!\n", p1);
+			printf("%s starts!\n", p1);
 			ruc=true;
 		}
 		for(i=0;i<9;i++)/*Można wykonać maksymalnie 9 ruchów by zapełnić planszę, dlatego i<9*/
 		{
 			if(choice==2){
-			printf("%s, które pole chcesz zapełnić?\n", ruc==true?p1:p2);
+			printf("%s, which field would you like to fill?\n", ruc==true?p1:p2);
 			fgets(buffer, sizeof buffer, stdin);
 			input= strtol(buffer,NULL,10);
 			response = ruch(input, ruc);/*Przechowujemy odpowiedź funkcji ruch w zmiennej response*/
 			while(response == 0) { /*Funkcja response zwraca 0 jeśli wprowadzono znak spoza dozwolonego zakresu.
 				Prosimy wtedy zawodnika o powtórzenie jego ruchu.*/
-				printf("Wprowadzono złą liczbę lub pole jest już zajęte!\n");
+				printf("Field you have chosen doesn't exist or is already occupied!\n");
 				fgets(buffer, sizeof buffer, stdin);
 				input= strtol(buffer,NULL,10);
 				response = ruch(input, ruc);}}
 			else if(ruc==true && choice==1){
-				printf("%s, które pole chcesz zapełnić?\n",p1);
+				printf("%s, which field would you like to fill?\n",p1);
 				fgets(buffer, sizeof buffer, stdin);
 				input= strtol(buffer,NULL,10);
 				response = ruch(input, ruc);/*Przechowujemy odpowiedź funkcji ruch w zmiennej response*/
 				while(response == 0) { /*Funkcja response zwraca 0 jeśli wprowadzono znak spoza dozwolonego zakresu.
 					Prosimy wtedy zawodnika o powtórzenie jego ruchu.*/
-					printf("Wprowadzono złą liczbę lub pole jest już zajęte!\n");
+					printf("Field you have chosen doesn't exist or is already occupied!\n");
 					fgets(buffer, sizeof buffer, stdin);
 					input= strtol(buffer,NULL,10);
 					response = ruch(input, ruc);}}
 			else if(ruc==false){
 				input=analyze();
-				printf("Komputer wybrał pole %d!\n",input);
+				printf("AI chose field no. %d!\n",input);
 				response = ruch(input, ruc);/*Przechowujemy odpowiedź funkcji ruch w zmiennej response*/
 				while(response == 0) { /*Funkcja response zwraca 0 jeśli wprowadzono znak spoza dozwolonego zakresu.
 					Prosimy wtedy komputer o powtórzenie jego ruchu.*/
@@ -103,18 +107,18 @@ int pvp(int choice){
 			printer();/*Pokaż planszę*/
 			ruc = !ruc;/*Zmiana wartości ruc pozwala przeciwnikowi na ruch w następnej turze(następnym obrocie pętli)*/
 			if(i>=4 && (wincond()==1 || wincond()==2)){
-				printf("Wygrywa %s!\n", wincond()==1?p1:p2);
+				printf("%s won!\n", wincond()==1?p1:p2);
 				break;
 			}/*Wincond sprawdza warunek wygranej - jeśli któryś z graczy go spełni,
 			zwraca identyfikator gracza i przerywa pętlę*/
 		}
 		if(wincond()==0)
-			printf("Remis!\n");/*Jeśli na końcu gry nikt nie wygrał, wyświetl odpowiedni komunikat*/
+			printf("Draw!\n");/*Jeśli na końcu gry nikt nie wygrał, wyświetl odpowiedni komunikat*/
 
-		printf("Czy chcesz zagrać jeszcze raz?(T/n)\n");
+		printf("Would you like to play again?(Y/n)\n");
 		fgets(small_buffer, sizeof small_buffer, stdin);
 		small_buffer[strcspn(small_buffer, "\n")] = 0;
-		if(small_buffer[0]=='T'||small_buffer[0]=='t'){
+		if(small_buffer[0]=='Y'||small_buffer[0]=='y'){
 			continue;
 		}
 		if(small_buffer[0]=='N'||small_buffer[0]=='n'){
