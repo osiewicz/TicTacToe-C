@@ -17,7 +17,7 @@ int main()
 {
 	char small_buffer[3];
 	int choice;
-	printf("Tictactoe v0.1.0");
+	printf("Tictactoe v0.1.0\n");
 	printf("Would you like to play against PC(1) or human?(1/2)");
 	do{
 		fgets(small_buffer, sizeof small_buffer, stdin);
@@ -67,8 +67,7 @@ int pvp(int choice)
 		if(seed%2==0){
 			printf("%s starts!\n", p2);
 			ruc=false;
-		}
-		else{
+		}else{
 			printf("%s starts!\n", p1);
 			ruc=true;
 		}
@@ -84,8 +83,9 @@ int pvp(int choice)
 				printf("Field you have chosen doesn't exist or is already occupied!\n");
 				fgets(buffer, sizeof buffer, stdin);
 				input= strtol(buffer,NULL,10);
-				response = ruch(input, ruc);}}
-			else if(ruc==true && choice==1){
+				response = ruch(input, ruc);
+			}
+		} else if(ruc==true && choice==1){
 				printf("%s, which field would you like to fill?\n",p1);
 				fgets(buffer, sizeof buffer, stdin);
 				input= strtol(buffer,NULL,10);
@@ -95,8 +95,9 @@ int pvp(int choice)
 					printf("Field you have chosen doesn't exist or is already occupied!\n");
 					fgets(buffer, sizeof buffer, stdin);
 					input= strtol(buffer,NULL,10);
-					response = ruch(input, ruc);}}
-			else if(ruc==false){
+					response = ruch(input, ruc);
+				}
+			} else if(ruc==false){
 				input=analyze();
 				printf("AI chose field no. %d!\n",input);
 				response = ruch(input, ruc);/*Przechowujemy odpowiedź funkcji ruch w zmiennej response*/
@@ -123,10 +124,10 @@ int pvp(int choice)
 		}
 		if(small_buffer[0]=='N'||small_buffer[0]=='n'){
 			new_game++;
-		}
-		else
+		} else {
 			return 0;
-}
+		}
+	}
 	return 0;
 
 }
@@ -156,8 +157,7 @@ int wincond(){
 			if((board[i][p]=='X' && board[i][p+1]=='X' && board[i][p+2]=='X' && p==0) || (board[i][p]=='X' && board[i+1][p]=='X' && board[i+2][p]=='X')||
 			(board[i][i]=='X' && board[i+1][i+1]=='X' && board[i+2][i+2]=='X') || (board[2][0]=='X' && board[1][1]=='X' && board[0][2]=='X')){
 				return 1;
-			}
-			else if((board[i][p]=='O' && board[i][p+1]=='O' && board[i][p+2]=='O' && p==0) || (board[i][p]=='O' && board[i+1][p]=='O' && board[i+2][p]=='O')||
+			}	else if((board[i][p]=='O' && board[i][p+1]=='O' && board[i][p+2]=='O' && p==0) || (board[i][p]=='O' && board[i+1][p]=='O' && board[i+2][p]=='O')||
 						(board[i][i]=='O' && board[i+1][i+1]=='O' && board[i+2][i+2]=='O') ||  (board[2][0]=='O' && board[1][1]=='O' && board[0][2]=='O')){
 							return 2;
 						}
