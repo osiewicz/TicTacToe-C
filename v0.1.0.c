@@ -15,13 +15,13 @@ int analyze();
 
 int main()
 {
-	char small_buffer[3];
+	char buffer[3];
 	int choice;
 	printf("Tictactoe v0.1.0\n");
 	printf("Would you like to play against PC(1) or human?(1/2)");
 	do{
-		fgets(small_buffer, sizeof small_buffer, stdin);
-		choice = strtol(small_buffer,NULL,10);
+		fgets(buffer, sizeof(buffer), stdin);
+		choice = strtol(buffer,NULL,10);
 	}	while(choice != 1 && choice != 2);
 	/*Do-while loop presented above makes sure that end-user won't leave
 	 *start menu unless he choses a valid option. strtol is used as a further
@@ -39,7 +39,7 @@ int pvp(int choice)
 {
 	int seed;
 	int response = 0;//buffer for values returned by functions
-	char buffer[20],small_buffer[3];
+	char buffer[20];
 	bool current_player = false;
 	char p1[100],p2[100]; //Player's name
 	time_t tt;
@@ -78,7 +78,7 @@ int pvp(int choice)
 		}
 		for(i = 0;i<9;i++)/*Main gameplay loop*/
 		{
-			if(choice == 2){
+			if(choice == 2 && current_player=false){
 			printf("%s, which field would you like to fill?\n", current_player == true?p1:p2);
 			fgets(buffer, sizeof buffer, stdin);
 			input = strtol(buffer,NULL,10);
@@ -129,12 +129,12 @@ int pvp(int choice)
 			 *as it means that game has ended in a draw.
 			 */
 		printf("Would you like to play again?(Y/n)\n");
-		fgets(small_buffer, sizeof small_buffer, stdin);
-		small_buffer[strcspn(small_buffer, "\n")] = 0;
-		if(small_buffer[0] == 'Y'||small_buffer[0] == 'y'){
+		fgets(buffer, 3, stdin);
+		buffer[strcspn(buffer, "\n")] = 0;
+		if(buffer[0] == 'Y'||buffer[0] == 'y'){
 			continue;
 		}
-		if(small_buffer[0] == 'N'||small_buffer[0] == 'n'){
+		if(buffer[0] == 'N'||buffer[0] == 'n'){
 			new_game++;
 		} else {
 			return 0;
@@ -154,7 +154,7 @@ int move(char pole, bool current_player)
 					board[i][p] = (current_player) ? 'X' : 'O'; return 0;
 				}
 	/*If field is not occupied(its value is hashtag), take up that field.
-	Otherwise return error*/
+	Otherwise return error which can be processed by loop in pvp()*/
 		}
 	}
 	return -1;
