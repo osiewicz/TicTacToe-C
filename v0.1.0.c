@@ -2,6 +2,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdlib.h>
+#include "settings.c"
 
 char board[3][3]; /* This array is responsible for storing current gamestate.*/
 typedef enum {false, true } bool;
@@ -29,7 +30,7 @@ int main()
 	 *function and not some gimmicky ASCII substraction there is certain level
 	 *of comfort about malicious input from user.
 	*/
-	pvp(choice);
+	settings(1);
 	return 0;
 }
 
@@ -78,7 +79,7 @@ int pvp(int choice)
 		}
 		for(i = 0;i<9;i++)/*Main gameplay loop*/
 		{
-			if(choice == 2 && current_player=false){
+			if(choice == 2 && current_player==false){
 			printf("%s, which field would you like to fill?\n", current_player == true?p1:p2);
 			fgets(buffer, sizeof buffer, stdin);
 			input = strtol(buffer,NULL,10);
