@@ -12,7 +12,7 @@ void printer(void);
 int move(char, bool);
 int win_condition(void);
 int pvp(int choice);
-int analyze();
+int analyze(int ai_level);
 
 int main()
 {
@@ -30,7 +30,7 @@ int main()
 	 *function and not some gimmicky ASCII substraction there is certain level
 	 *of comfort about malicious input from user.
 	*/
-	settings(1);
+	pvp(choice);
 	return 0;
 }
 
@@ -38,15 +38,17 @@ int main()
 
 int pvp(int choice)
 {
-	int seed;
-	int response = 0;//buffer for values returned by functions
-	char buffer[20];
+	int ai_level,seed,response = 0;//buffer for values returned by functions
 	bool current_player = false;
-	char p1[100],p2[100]; //Player's name
+	char buffer[20],p1[100],p2[100],language[5]; //Player names and buffer for input.
 	time_t tt;
 	int i,p;//loop controlers
 	int new_game = 0;
 	int input = 0;
+	strcpy(language,settings(2));
+	ai_level=*settings(3);
+	strcpy(p1,settings(4));
+	strcpy(p2,settings(5));
 	while(new_game<1){
 		seed = time(&tt);/*Time passed since 01.01.1970 is used as randomizer seed*/
 		srand(seed);
@@ -56,14 +58,6 @@ int pvp(int choice)
 		for(i = 0;i<3;i++){
 			for(p = 0;p<3;p++)
 				board[i][p] = '#';
-		}
-		printf("Hello! What is your name?\nName:");
-		fgets(p1, sizeof p1, stdin);
-		p1[strcspn(p1, "\n")] = 0;
-		if(choice == 2){
-			printf("%s, how is your enemy called?\nName:", p1);
-			fgets(p2, sizeof p2, stdin);
-			p2[strcspn(p2, "\n")] = 0;
 		}
 		/*Above code block(starting at first printf) is responsible for getting the player's name into two variables, p1 and p2
 		 *It accomplishes it's goal via fgets and strcspn functions. strcspn removes newline.
@@ -79,7 +73,7 @@ int pvp(int choice)
 		}
 		for(i = 0;i<9;i++)/*Main gameplay loop*/
 		{
-			if(choice == 2 && current_player==false){
+			if(choice == 2){
 			printf("%s, which field would you like to fill?\n", current_player == true?p1:p2);
 			fgets(buffer, sizeof buffer, stdin);
 			input = strtol(buffer,NULL,10);
@@ -107,23 +101,23 @@ int pvp(int choice)
 					response = move(input, current_player);
 				}
 			} else if(current_player == false){
-				input = analyze();
-				printf("AI chose field no. %d!\n",input);
-				response = move(input, current_player);
-				while(response == -1) {
-				input = analyze();
-				response = move(input, current_player);}}
+					input = analyze(ai_level);
+					printf("AI chose field no. %d!\n",input);
+					response = move(input, current_player);
+					while(response == -1) {
+						input = analyze(ai_level);
+						response = move(input, current_player);}}
 				/*We still want to check whether PC didn't try to occupy occupied field,
 				however there is no need to print out a warning*/
-			printer();
-			current_player = !current_player;//Turn is about to end, so turn bool's value is reversed
-			if(i >= 4 && (win_condition() == 1 || win_condition() == 2)){
-				printf("%s won!\n", win_condition() == 1?p1:p2);
-				break;
-			}/*win_condition checks the state of the board and if it returns player_id,
-				* then we finish the game and print out winner's nickname*/
-		}
-		if(win_condition() == 0)
+				printer();
+				current_player = !current_player;//Turn is about to end, so turn bool's value is reversed
+				if(i >= 4 && (win_condition() == 1 || win_condition() == 2)){
+					printf("%s won!\n", win_condition() == 1?p1:p2);
+					break;
+				}/*win_condition checks the state of the board and if it returns player_id,
+					* then we finish the game and print out winner's nickname*/
+			}
+			if(win_condition() == 0)
 			printf("Draw!\n");
 			/*win_condition returns 0 when noone is winner in current turn.
 			 *We check for this specific return only at the end of the whole game,
@@ -163,7 +157,7 @@ int move(char pole, bool current_player)
 
 void printer(void)
 {
-	printf("%c %c %c\n%c %c %c\n%c %c %c \n \n", board[0][0], board[0][1], board[0][2],
+	printf("%c|%c|%c\n%c|%c|%c\n%c|%c|%c\n \n", board[0][0], board[0][1], board[0][2],
 	board[1][0], board[1][1], board[1][2], board[2][0], board[2][1], board[2][2]);
 }
 int win_condition()
@@ -189,12 +183,13 @@ int win_condition()
 	}
 				return 0;
 }
-int analyze()
+int analyze(int ai_level)
 {
 	int i,p,pole,x,d;
 	x=0;
 	d=0;
 	pole=0;
+	if(ai_level>=2)
 	for(i=0;i<3;i++){
 		for(p=0;p<3;p++){
 			if((board[i][p-2] == 'O' && board[i][p-1] == 'O' && board[i][p] == '#' && p == 2)||
@@ -214,6 +209,7 @@ int analyze()
 			}
 		}
 	}
+	if(ai_level>=3)
 	for(i=0;i<3;i++){
 		for(p=0;p<3;p++){
 			if((board[i][p-2] == 'X' && board[i][p-1] == 'X' && board[i][p] == '#' && p == 2)||
@@ -233,13 +229,25 @@ int analyze()
 			}
 		}
 	}
-	if(board[1][1] == '#'){
+	if(board[1][1] == '#'&&ai_level>=1){
 		return 5;
 	}
-
+	if(ai_level>=4){
 	for(i=0;i<3;i++){
 		for(p=0;p<3;p++){
-			if(board[i][p] == '#'){
+			if((board[i+2][p-2]=='X'&&board[i][p]=='#')||(board[i+2][p+2]=='X'&&
+			board[i][p]=='#')||(board[i-2][p+2]=='X'&&board[i][p]=='#')||
+		(board[i-2][p-2]=='X'&&board[i][p]=='#')){
+				pole=i*3+p+1;
+				return pole;
+			}
+		}
+	}
+}
+if(ai_level>=1)
+	for(i=0;i<3;i++){
+		for(p=0;p<3;p++){
+			if(board[i][p] == '#'&&ai_level>=1){
 				x=rand();
 				d=rand();
 				d=d%3;
