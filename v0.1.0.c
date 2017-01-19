@@ -3,6 +3,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include "settings.c"
+#include "languages.c"
 
 char board[3][3]; /* This array is responsible for storing current gamestate.*/
 typedef enum {false, true } bool;
@@ -18,8 +19,11 @@ int main()
 {
 	char buffer[3];
 	int choice;
-	printf("Tictactoe v0.1.0\n");
-	printf("Would you like to play against PC(1) or human?(1/2)");
+	char language[5];
+	strcpy(language,settings(2));
+	char **game_strings=strings(language);
+	printf("%s\n",game_strings[0]);
+	printf("%s\n",game_strings[1]);
 	do{
 		fgets(buffer, sizeof(buffer), stdin);
 		choice = strtol(buffer,NULL,10);
@@ -41,10 +45,13 @@ int pvp(int choice)
 	char buffer[20],p1[100],p2[100],language[5]; //Player names and buffer for input.
 	time_t tt;
 	int i,p;//loop controlers
-	int new_game = 0;
+	int new_game = 0;/*Game loop. Serves as "main menu"*/
 	int input = 0;
-
+	/*User input will be transformed from string form (buffer)
+	 *to integer. Just a safety measure.
+	 */
 	strcpy(language,settings(2));
+	char **game_strings=strings(language);
 	ai_level=*settings(3);
 	strcpy(p1,settings(4));
 	strcpy(p2,settings(5));
@@ -58,28 +65,24 @@ int pvp(int choice)
 		for(i = 0;i<3;i++){
 			for(p = 0;p<3;p++)
 				board[i][p] = '#';
-		}
-		/*Above code block(starting at first printf) is responsible for getting the player's name into two variables, p1 and p2
-		 *It accomplishes it's goal via fgets and strcspn functions. strcspn removes newline.
-		 */
-		printf("Here's the board! Familiarize yourself with it.\n\n");
+		}/* Clear the board*/
+		printf("%s\n",game_strings[2]);
 		printer();
 		if(seed%2 == 0){
-			printf("%s starts!\n", p2);
 			current_player = false;
 		}else{
-			printf("%s starts!\n", p1);
 			current_player = true;
 		}
+		printf("%s%s\n", current_player==true?p1:p2,game_strings[3]);
 		for(i = 0;i<9;i++)/*Main gameplay loop*/
 		{
 			if(choice == 2){
-			printf("%s, which field would you like to fill?\n", current_player == true?p1:p2);
+			printf("%s%s\n", current_player == true?p1:p2,game_strings[4]);
 			fgets(buffer, sizeof buffer, stdin);
 			input = strtol(buffer,NULL,10);
 			response = move(input, current_player);
 			while(response == -1) {
-				printf("Field you have chosen doesn't exist or is already occupied!\n");
+				printf("%s\n",game_strings[5]);
 				fgets(buffer, sizeof buffer, stdin);
 				input = strtol(buffer,NULL,10);
 				response = move(input, current_player);
@@ -90,19 +93,19 @@ int pvp(int choice)
 			* we get expected  response
 			*/
 		} else if(current_player == true && choice == 1){
-				printf("%s, which field would you like to fill?\n",p1);
+				printf("%s%s\n",p1,game_strings[4]);
 				fgets(buffer, sizeof buffer, stdin);
 				input = strtol(buffer,NULL,10);
 				response = move(input, current_player);
 				while(response == -1) {
-					printf("Field you have chosen doesn't exist or is already occupied!\n");
+					printf("%s\n",game_strings[5]);
 					fgets(buffer, sizeof buffer, stdin);
 					input = strtol(buffer,NULL,10);
 					response = move(input, current_player);
 				}
 			} else if(current_player == false){
 					input = analyze(ai_level);
-					printf("AI chose field no. %d!\n",input);
+					printf("%s %d!\n",game_strings[6],input);
 					response = move(input, current_player);
 					while(response == -1) {
 						input = analyze(ai_level);
@@ -112,18 +115,18 @@ int pvp(int choice)
 				printer();
 				current_player = !current_player;//Turn is about to end, so turn bool's value is reversed
 				if(i >= 4 && (win_condition() == 1 || win_condition() == 2)){
-					printf("%s won!\n", win_condition() == 1?p1:p2);
+					printf("%s %s\n", win_condition() == 1?p1:p2,game_strings[7]);
 					break;
 				}/*win_condition checks the state of the board and if it returns player_id,
 					* then we finish the game and print out winner's nickname*/
 			}
 			if(win_condition() == 0)
-			printf("Draw!\n");
+			printf("%s\n",game_strings[8]);
 			/*win_condition returns 0 when noone is winner in current turn.
 			 *We check for this specific return only at the end of the whole game,
 			 *as it means that game has ended in a draw.
 			 */
-		printf("Would you like to play again?(Y/n)\n");
+		printf("%s\n",game_strings[9]);
 		fgets(buffer, 3, stdin);
 		buffer[strcspn(buffer, "\n")] = 0;
 		if(buffer[0] == 'Y'||buffer[0] == 'y'){
