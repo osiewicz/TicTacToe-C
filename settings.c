@@ -7,7 +7,7 @@ char* settings(const int val)
 {
   /*Init calls:
    *1- check whether config file exists/is valid. If it's missing/corrupted then
-   *generate new one via recursive call with value 2.
+   *generate new one via recursive call with value -1.
   */
   FILE * fp;
   static int i,ai_level,counter=0;
@@ -38,8 +38,8 @@ char* settings(const int val)
         }
       }
     if(((strcmp(lang,options[0])!=0)&&(strcmp(lang,options[1])!=0))||(ai_level>5||ai_level<0)){
-      printf("Your config is incorrect. Verify whether you didn't misspell any options such as language or AI_level. ");
-      return 0;
+      printf("Your config is incorrect. Generating new one...");
+      settings(-1);
     }
     if(val>1&&val<=5)
     return ptr_array[val-2];

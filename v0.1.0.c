@@ -34,8 +34,6 @@ int main()
 	return 0;
 }
 
-
-
 int pvp(int choice)
 {
 	int ai_level,seed,response = 0;//buffer for values returned by functions
@@ -45,10 +43,12 @@ int pvp(int choice)
 	int i,p;//loop controlers
 	int new_game = 0;
 	int input = 0;
+
 	strcpy(language,settings(2));
 	ai_level=*settings(3);
 	strcpy(p1,settings(4));
 	strcpy(p2,settings(5));
+
 	while(new_game<1){
 		seed = time(&tt);/*Time passed since 01.01.1970 is used as randomizer seed*/
 		srand(seed);
