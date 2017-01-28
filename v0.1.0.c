@@ -9,11 +9,11 @@ char board[3][3]; /* This array is responsible for storing current gamestate.*/
 typedef enum {false, true } bool;
 
 
-void printer(void);
+void print_board(void);
 int move(char, bool);
-int win_condition(void);
-int pvp(int choice);
-int analyze(int ai_level);
+int win_condition_check(void);
+int game(int choice);
+int ai_analyze_board_state(int ai_level);
 
 int main()
 {
@@ -21,7 +21,7 @@ int main()
 	int choice;
 	char language[5];
 	strcpy(language,settings(2));
-	char **game_strings=strings(language);
+	char **game_strings = strings(language);
 	printf("%s\n",game_strings[0]);
 	printf("%s\n",game_strings[1]);
 	do{
@@ -34,11 +34,11 @@ int main()
 	 *function and not some gimmicky ASCII substraction there is certain level
 	 *of comfort about malicious input from user.
 	*/
-	pvp(choice);
+	game(choice);
 	return 0;
 }
 
-int pvp(int choice)
+int game(int choice)/*Game loop logic*/
 {
 	int ai_level,seed,response = 0;//buffer for values returned by functions
 	bool current_player = false;
@@ -51,8 +51,8 @@ int pvp(int choice)
 	 *to integer. Just a safety measure.
 	 */
 	strcpy(language,settings(2));
-	char **game_strings=strings(language);
-	ai_level=*settings(3);
+	char **game_strings = strings(language);
+	ai_level = *settings(3);
 	strcpy(p1,settings(4));
 	strcpy(p2,settings(5));
 
@@ -67,7 +67,7 @@ int pvp(int choice)
 				board[i][p] = '#';
 		}/* Clear the board*/
 		printf("%s\n",game_strings[2]);
-		printer();
+		print_board();
 		if(seed%2 == 0){
 			current_player = false;
 		}else{
@@ -104,25 +104,25 @@ int pvp(int choice)
 					response = move(input, current_player);
 				}
 			} else if(current_player == false){
-					input = analyze(ai_level);
+					input = ai_analyze_board_state(ai_level);
 					printf("%s %d!\n",game_strings[6],input);
 					response = move(input, current_player);
 					while(response == -1) {
-						input = analyze(ai_level);
+						input = ai_analyze_board_state(ai_level);
 						response = move(input, current_player);}}
 				/*We still want to check whether PC didn't try to occupy occupied field,
 				however there is no need to print out a warning*/
-				printer();
+				print_board();
 				current_player = !current_player;//Turn is about to end, so turn bool's value is reversed
-				if(i >= 4 && (win_condition() == 1 || win_condition() == 2)){
-					printf("%s %s\n", win_condition() == 1?p1:p2,game_strings[7]);
+				if(i >= 4 && (win_condition_check() == 1 || win_condition_check() == -1)){
+					printf("%s %s\n%d", win_condition_check() == 1?p1:p2,game_strings[7],input);
 					break;
-				}/*win_condition checks the state of the board and if it returns player_id,
+				}/*win_condition_check checks the state of the board and if it returns player_id,
 					* then we finish the game and print out winner's nickname*/
 			}
-			if(win_condition() == 0)
+			if(win_condition_check() == 0)
 			printf("%s\n",game_strings[8]);
-			/*win_condition returns 0 when noone is winner in current turn.
+			/*win_condition_check returns 0 when noone is winner in current turn.
 			 *We check for this specific return only at the end of the whole game,
 			 *as it means that game has ended in a draw.
 			 */
@@ -139,7 +139,6 @@ int pvp(int choice)
 		}
 	}
 	return 0;
-
 }
 
 int move(char pole, bool current_player)
@@ -152,20 +151,21 @@ int move(char pole, bool current_player)
 					board[i][p] = (current_player) ? 'X' : 'O'; return 0;
 				}
 	/*If field is not occupied(its value is hashtag), take up that field.
-	Otherwise return error which can be processed by loop in pvp()*/
+	Otherwise return error which can be processed by loop in game()*/
 		}
 	}
 	return -1;
 }
 
-void printer(void)
+void print_board(void)
 {
 	printf("%c|%c|%c\n%c|%c|%c\n%c|%c|%c\n \n", board[0][0], board[0][1], board[0][2],
 	board[1][0], board[1][1], board[1][2], board[2][0], board[2][1], board[2][2]);
 }
-int win_condition()
+int win_condition_check()
 {
 	int i,p;
+	unsigned wins[8][3] = {{0,1,2},{3,4,5},{6,7,8},{0,3,6},{1,4,7},{2,5,8},{0,4,8},{2,4,6}};
 	for(i = 0;i<3;i++){
 		for(p = 0;p<3;p++){
 			if((board[i][p] == 'X' && board[i][p+1] == 'X' && board[i][p+2] == 'X' && p == 0) ||
@@ -177,57 +177,57 @@ int win_condition()
 				(board[i][p] == 'O' && board[i+1][p] == 'O' && board[i+2][p] == 'O') ||
 				(board[i][i] == 'O' && board[i+1][i+1] == 'O' && board[i+2][i+2] == 'O') ||
 				(board[2][0] == 'O' && board[1][1] == 'O' && board[0][2] == 'O')){
-						return 2;
+						return -1;
 						}
-		}			/*win_condition checks the state of a board and returns these values:
+		}			/*win_condition_check checks the state of a board and returns these values:
 					*1 or 2 if one of the players is winning
 					*0 if above is not true (used to determine a draw)
 					*/
 	}
 				return 0;
 }
-int analyze(int ai_level)
+int ai_analyze_board_state(int ai_level)
 {
-	int i,p,pole,x,d;
-	x=0;
-	d=0;
-	pole=0;
-	if(ai_level>=2)
-	for(i=0;i<3;i++){
-		for(p=0;p<3;p++){
-			if((board[i][p-2] == 'O' && board[i][p-1] == 'O' && board[i][p] == '#' && p == 2)||
-			(board[i][p+1] == 'O' && board[i][p+2] == 'O' && board[i][p] == '#' && p == 0)||
-			(board[i][p-1] == 'O' && board[i][p+1] == 'O' && board[i][p] == '#' && p == 1) ||
-			(board[i+1][p] == 'O' && board[i+2][p] == 'O' && board[i][p] == '#' && i == 0)||
-			(board[i-1][p] == 'O' && board[i+1][p] == 'O' && board[i][p] == '#' && i == 1) ||
-			(board[i-1][p] == 'O' && board[i-2][p] == 'O' && board[i][p] == '#' && i == 2)||
-			(board[i][i] == '#' && board[i+1][i+1] == 'O' && board[i+2][i+2] == 'O' && p == i)||
-			(board[i][i] == '#' && board[i-1][i-1] == 'O' && board[i-2][i-2] == 'O' && p == i)||
-			(board[i][i] == '#' && board[i-1][i-1] == 'O' && board[i+1][i+1] == 'O' && p == i)||
-			(board[i][p] == '#' && board[i-1][p+1] == 'O' && board[i-2][p+2] == 'O' && i == 2 && p == 0)||
-			(board[i][p] == '#' && board[i+1][p-1] == 'O' && board[i-1][p+1] == 'O' && i == 1 && p == 1)||
-			(board[i][p] == '#' && board[i+1][p-1] == 'O' && board[i+2][p-2] == 'O' && i == 0 && p == 2)){
-				pole=i*3+p+1;
+	int i,p,pole,x_index,y_index;
+	x_index = 0;
+	y_index = 0;
+	pole = 0;
+	if(ai_level >= 2)
+	for(i = 0 ; i < 3 ; i++){
+		for(p = 0; p < 3 ; p++){
+			if((board[i][p-2] == board[i][p-1] == 'O' && board[i][p] == '#' && p == 2)||
+			(board[i][p+1] == board[i][p+2] == 'O' && board[i][p] == '#' && p == 0)||
+			(board[i][p-1] == board[i][p+1] == 'O' && board[i][p] == '#' && p == 1) ||
+			(board[i+1][p] == board[i+2][p] == 'O' && board[i][p] == '#' && i == 0)||
+			(board[i-1][p] == board[i+1][p] == 'O' && board[i][p] == '#' && i == 1) ||
+			(board[i-1][p] == board[i-2][p] == 'O' && board[i][p] == '#' && i == 2)||
+			(board[i][i] == '#' && board[i+1][i+1] == board[i+2][i+2] == 'O' && p == i)||
+			(board[i][i] == '#' && board[i-1][i-1] == board[i-2][i-2] == 'O' && p == i)||
+			(board[i][i] == '#' && board[i-1][i-1] ==  board[i+1][i+1] == 'O' && p == i)||
+			(board[i][p] == '#' && board[i-1][p+1] == board[i-2][p+2] == 'O' && i == 2 && p == 0)||
+			(board[i][p] == '#' && board[i+1][p-1] ==  board[i-1][p+1] == 'O' && i == 1 && p == 1)||
+			(board[i][p] == '#' && board[i+1][p-1] == board[i+2][p-2] == 'O' && i == 0 && p == 2)){
+				pole = i*3+p+1;
 				return pole;
 			}
 		}
 	}
-	if(ai_level>=3)
+	if(ai_level >= 3)
 	for(i=0;i<3;i++){
 		for(p=0;p<3;p++){
-			if((board[i][p-2] == 'X' && board[i][p-1] == 'X' && board[i][p] == '#' && p == 2)||
-			(board[i][p+1] == 'X' && board[i][p+2] == 'X' && board[i][p] == '#' && p == 0)||
-			(board[i][p-1] == 'X' && board[i][p+1] == 'X' && board[i][p] == '#' && p == 1) ||
-			(board[i+1][p] == 'X' && board[i+2][p] == 'X' && board[i][p] == '#' && i == 0)||
-			(board[i-1][p] == 'X' && board[i+1][p] == 'X' && board[i][p] == '#' && i == 1) ||
-			(board[i-1][p] == 'X' && board[i-2][p] == 'X' && board[i][p] == '#' && i == 2)||
-			(board[i][i] == '#' && board[i+1][i+1] == 'X' && board[i+2][i+2] == 'X' && p == i)||
-			(board[i][i] == '#' && board[i-1][i-1] == 'X' && board[i-2][i-2] == 'X' && p == i)||
-			(board[i][i] == '#' && board[i-1][i-1] == 'X' && board[i+1][i+1] == 'X' && p == i)||
-			(board[i][p] == '#' && board[i-1][p+1] == 'X' && board[i-2][p+2] == 'X' && i == 2 && p == 0)||
-			(board[i][p] == '#' && board[i+1][p-1] == 'X' && board[i-1][p+1] == 'X' && i == 1 && p == 1)||
-			(board[i][p] == '#' && board[i+1][p-1] == 'X' && board[i+2][p-2] == 'X' && i == 0 && p == 2)){
-				pole=i*3+p+1;
+			if((board[i][p-2] == board[i][p-1] == 'X' && board[i][p] == '#' && p == 2)||
+			(board[i][p+1] == board[i][p+2] == 'X' && board[i][p] == '#' && p == 0)||
+			(board[i][p-1] ==  board[i][p+1] == 'X' && board[i][p] == '#' && p == 1) ||
+			(board[i+1][p] ==  board[i+2][p] == 'X' && board[i][p] == '#' && i == 0)||
+			(board[i-1][p] ==  board[i+1][p] == 'X' && board[i][p] == '#' && i == 1) ||
+			(board[i-1][p] ==  board[i-2][p] == 'X' && board[i][p] == '#' && i == 2)||
+			(board[i][i] == '#' && board[i+1][i+1] == board[i+2][i+2] == 'X' && p == i)||
+			(board[i][i] == '#' && board[i-1][i-1] ==  board[i-2][i-2] == 'X' && p == i)||
+			(board[i][i] == '#' && board[i-1][i-1] == board[i+1][i+1] == 'X' && p == i)||
+			(board[i][p] == '#' && board[i-1][p+1] ==  board[i-2][p+2] == 'X' && i == 2 && p == 0)||
+			(board[i][p] == '#' && board[i+1][p-1] ==  board[i-1][p+1] == 'X' && i == 1 && p == 1)||
+			(board[i][p] == '#' && board[i+1][p-1] ==  board[i+2][p-2] == 'X' && i == 0 && p == 2)){
+				pole = i*3+p+1;
 				return pole;
 			}
 		}
@@ -247,16 +247,16 @@ int analyze(int ai_level)
 		}
 	}
 }
-if(ai_level>=1)
+if(ai_level >= 1)
 	for(i=0;i<3;i++){
 		for(p=0;p<3;p++){
 			if(board[i][p] == '#'&&ai_level>=1){
-				x=rand();
-				d=rand();
-				d=d%3;
-				x=x%3;
-				if(board[x][d]=='#')
-					return (3*x+d+1);
+				x_index = rand();
+				y_index = rand();
+				y_index = y_index%3;
+				x_index = x_index %3;
+				if(board[x_index][y_index] == '#')
+					return (3*x_index+y_index+1);
 			}
 		}
 	}
