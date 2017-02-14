@@ -11,8 +11,4 @@ Although AI is far from ideal, I am really proud for what I have done with the p
 
 If you want to contribute to the project by creating translation file (or improving the code), feel free to do so. All you need to do is follow the convention of .lang files - each line has its corresponding index in the string table, so it should be pretty straight forward to create your own translation. When it is ready, you have to include your file in whitelist present in settings.c/languages.c. You can do it!
 
-Languages supported:
-pl-pl
-en-gb
-
 
