@@ -45,7 +45,6 @@ int game(int choice)/*Game loop logic*/
 	char buffer[20],p1[100],p2[100],language[5]; //Player names and buffer for input.
 	time_t tt;
 	int i,p;//loop controlers
-	int new_game = 0;/*Game loop. Serves as "main menu"*/
 	int input = 0;
 	/*User input will be transformed from string form (buffer)
 	 *to integer. Just a safety measure.
@@ -56,7 +55,7 @@ int game(int choice)/*Game loop logic*/
 	strcpy(p1,settings(4));
 	strcpy(p2,settings(5));
 
-	while(new_game<1){
+	while(1){
 		seed = time(&tt);/*Time passed since 01.01.1970 is used as randomizer seed*/
 		srand(seed);
 		if(choice == 1){
@@ -115,7 +114,7 @@ int game(int choice)/*Game loop logic*/
 				print_board();
 				current_player = !current_player;//Turn is about to end, so turn bool's value is reversed
 				if(i >= 4 && (win_condition_check() == 1 || win_condition_check() == -1)){
-					printf("%s %s\n%d", win_condition_check() == 1?p1:p2,game_strings[7],input);
+					printf("%s %s\n", win_condition_check() == 1?p1:p2,game_strings[7]);
 					break;
 				}/*win_condition_check checks the state of the board and if it returns player_id,
 					* then we finish the game and print out winner's nickname*/
@@ -133,7 +132,7 @@ int game(int choice)/*Game loop logic*/
 			continue;
 		}
 		if(buffer[0] == 'N'||buffer[0] == 'n'){
-			new_game++;
+			break;
 		} else {
 			return 0;
 		}
