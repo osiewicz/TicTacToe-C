@@ -4,7 +4,7 @@
 #include <unistd.h>
 
 
-char **strings(char *language)
+const char **strings(char *language)
 {
   static char *(text)[15];
   FILE *fp;
@@ -44,7 +44,7 @@ char **strings(char *language)
       continue;
     }
     }
-  return text;
+  return (const char**)text;
 }
 
 /*

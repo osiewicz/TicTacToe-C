@@ -3,42 +3,42 @@
 #include <time.h>
 #include <stdlib.h>
 #include "settings.c"
-#include "languages.c"
+#include "game_strings.c"
 
 char board[3][3]; /* This array is responsible for storing current gamestate.*/
-typedef enum {false, true } bool;
+typedef enum {false, true} bool;
 
 
 void print_board(void);
 int move(char, bool);
 int win_condition_check(void);
-int game(int choice);
+void game(int player_choice);
 int ai_analyze_board_state(int ai_level);
 
 int main()
 {
 	char buffer[3];
-	int choice;
+	int player_choice;
 	char language[5];
 	strcpy(language,settings(2));
-	char **game_strings = strings(language);
+	const char **game_strings = strings(language);
 	printf("%s\n",game_strings[0]);
 	printf("%s\n",game_strings[1]);
 	do{
 		fgets(buffer, sizeof(buffer), stdin);
-		choice = strtol(buffer,NULL,10);
-	}	while(choice != 1 && choice != 2);
+		player_choice = strtol(buffer,NULL,10);
+	}	while(player_choice != 1 && player_choice != 2);
 	/*Do-while loop presented above makes sure that end-user won't leave
 	 *start menu unless he choses a valid option. strtol is used as a further
 	 *security measure - since our strings are converted to valid numbers via
 	 *function and not some gimmicky ASCII substraction there is certain level
 	 *of comfort about malicious input from user.
 	*/
-	game(choice);
+	game(player_choice);
 	return 0;
 }
 
-int game(int choice)/*Game loop logic*/
+void game(int player_choice)/*Game loop logic*/
 {
 	int ai_level,seed,response = 0;//buffer for values returned by functions
 	bool current_player = false;
@@ -50,7 +50,7 @@ int game(int choice)/*Game loop logic*/
 	 *to integer. Just a safety measure.
 	 */
 	strcpy(language,settings(2));
-	char **game_strings = strings(language);
+	const char **game_strings = strings(language);
 	ai_level = *settings(3);
 	strcpy(p1,settings(4));
 	strcpy(p2,settings(5));
@@ -58,7 +58,7 @@ int game(int choice)/*Game loop logic*/
 	while(1){
 		seed = time(&tt);/*Time passed since 01.01.1970 is used as randomizer seed*/
 		srand(seed);
-		if(choice == 1){
+		if(player_choice == 1){
 			strncpy(p2,"PC", sizeof(p2)-1);
 		}
 		for(i = 0;i<3;i++){
@@ -75,7 +75,7 @@ int game(int choice)/*Game loop logic*/
 		printf("%s%s\n", current_player==true?p1:p2,game_strings[3]);
 		for(i = 0;i<9;i++)/*Main gameplay loop*/
 		{
-			if(choice == 2){
+			if(player_choice == 2){
 			printf("%s%s\n", current_player == true?p1:p2,game_strings[4]);
 			fgets(buffer, sizeof buffer, stdin);
 			input = strtol(buffer,NULL,10);
@@ -91,7 +91,7 @@ int game(int choice)/*Game loop logic*/
 			* be seen at glance - if move() returned error, we'll repeat move until
 			* we get expected  response
 			*/
-		} else if(current_player == true && choice == 1){
+		} else if(current_player == true && player_choice == 1){
 				printf("%s%s\n",p1,game_strings[4]);
 				fgets(buffer, sizeof buffer, stdin);
 				input = strtol(buffer,NULL,10);
@@ -133,11 +133,10 @@ int game(int choice)/*Game loop logic*/
 		}
 		if(buffer[0] == 'N'||buffer[0] == 'n'){
 			break;
-		} else {
-			return 0;
+		}else {
+			continue;
 		}
 	}
-	return 0;
 }
 
 int move(char pole, bool current_player)
@@ -164,25 +163,29 @@ void print_board(void)
 int win_condition_check()
 {
 	int i,p;
-	unsigned wins[8][3] = {{0,1,2},{3,4,5},{6,7,8},{0,3,6},{1,4,7},{2,5,8},{0,4,8},{2,4,6}};
-	for(i = 0;i<3;i++){
-		for(p = 0;p<3;p++){
-			if((board[i][p] == 'X' && board[i][p+1] == 'X' && board[i][p+2] == 'X' && p == 0) ||
-			(board[i][p] == 'X' && board[i+1][p] == 'X' && board[i+2][p] == 'X')||
-			(board[i][i] == 'X' && board[i+1][i+1] == 'X' && board[i+2][i+2] == 'X') ||
-			(board[2][0] == 'X' && board[1][1] == 'X' && board[0][2] == 'X')){
+	unsigned wins[8][3][2] = {{{0,0},{0,1},{0,2}},{{1,0},{1,1},{1,2}},{{2,0},{2,1},{2,2}},{{0,0},{1,0},{2,0}},
+	{{0,1},{1,1},{2,1}},{{0,2},{1,2},{2,2}},{{0,0},{1,1},{2,2}},{{0,2},{1,1},{2,0}}};
+	for(i=0;i<8;i++){
+		for(p=0;p<3;p++){
+			if(board[wins[i][p][0]][wins[i][p][1]]=='X'&&p==2)
 				return 1;
-			}	else if((board[i][p] == 'O' && board[i][p+1] == 'O' && board[i][p+2] == 'O' && p == 0) ||
-				(board[i][p] == 'O' && board[i+1][p] == 'O' && board[i+2][p] == 'O') ||
-				(board[i][i] == 'O' && board[i+1][i+1] == 'O' && board[i+2][i+2] == 'O') ||
-				(board[2][0] == 'O' && board[1][1] == 'O' && board[0][2] == 'O')){
-						return -1;
-						}
-		}			/*win_condition_check checks the state of a board and returns these values:
-					*1 or 2 if one of the players is winning
-					*0 if above is not true (used to determine a draw)
-					*/
+			else if(board[wins[i][p][0]][wins[i][p][1]]=='X')
+				continue;
+			else
+				break;
+		}
 	}
+	for(i=0;i<8;i++){
+		for(p=0;p<3;p++){
+			if(board[wins[i][p][0]][wins[i][p][1]]=='O'&&p==2)
+				return -1;
+			else if(board[wins[i][p][0]][wins[i][p][1]]=='O')
+				continue;
+			else
+				break;
+		}
+	}
+
 				return 0;
 }
 int ai_analyze_board_state(int ai_level)
