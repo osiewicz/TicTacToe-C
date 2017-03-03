@@ -164,25 +164,29 @@ void print_board(void)
 int win_condition_check()
 {
 	int i,p;
-	unsigned wins[8][3] = {{0,1,2},{3,4,5},{6,7,8},{0,3,6},{1,4,7},{2,5,8},{0,4,8},{2,4,6}};
-	for(i = 0;i<3;i++){
-		for(p = 0;p<3;p++){
-			if((board[i][p] == 'X' && board[i][p+1] == 'X' && board[i][p+2] == 'X' && p == 0) ||
-			(board[i][p] == 'X' && board[i+1][p] == 'X' && board[i+2][p] == 'X')||
-			(board[i][i] == 'X' && board[i+1][i+1] == 'X' && board[i+2][i+2] == 'X') ||
-			(board[2][0] == 'X' && board[1][1] == 'X' && board[0][2] == 'X')){
+	unsigned wins[8][3][2] = {{{0,0},{0,1},{0,2}},{{1,0},{1,1},{1,2}},{{2,0},{2,1},{2,2}},{{0,0},{1,0},{2,0}},
+	{{0,1},{1,1},{2,1}},{{0,2},{1,2},{2,2}},{{0,0},{1,1},{2,2}},{{0,2},{1,1},{2,0}}};
+	for(i=0;i<8;i++){
+		for(p=0;p<3;p++){
+			if(board[wins[i][p][0]][wins[i][p][1]]=='X'&&p==2)
 				return 1;
-			}	else if((board[i][p] == 'O' && board[i][p+1] == 'O' && board[i][p+2] == 'O' && p == 0) ||
-				(board[i][p] == 'O' && board[i+1][p] == 'O' && board[i+2][p] == 'O') ||
-				(board[i][i] == 'O' && board[i+1][i+1] == 'O' && board[i+2][i+2] == 'O') ||
-				(board[2][0] == 'O' && board[1][1] == 'O' && board[0][2] == 'O')){
-						return -1;
-						}
-		}			/*win_condition_check checks the state of a board and returns these values:
-					*1 or 2 if one of the players is winning
-					*0 if above is not true (used to determine a draw)
-					*/
+			else if(board[wins[i][p][0]][wins[i][p][1]]=='X')
+				continue;
+			else
+				break;
+		}
 	}
+	for(i=0;i<8;i++){
+		for(p=0;p<3;p++){
+			if(board[wins[i][p][0]][wins[i][p][1]]=='O'&&p==2)
+				return -1;
+			else if(board[wins[i][p][0]][wins[i][p][1]]=='O')
+				continue;
+			else
+				break;
+		}
+	}
+
 				return 0;
 }
 int ai_analyze_board_state(int ai_level)
