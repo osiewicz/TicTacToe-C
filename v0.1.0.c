@@ -1,3 +1,4 @@
+//Minmax implementation based on :https://gist.github.com/MatthewSteel/3158579#file-ttt-c-L8
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -8,12 +9,12 @@
 char board[3][3]; /* This array is responsible for storing current gamestate.*/
 typedef enum {false, true} bool;
 
-
 void print_board(void);
-int move(char, bool);
+int move(char, int);
 int win_condition_check(void);
 void game(int player_choice);
-int ai_analyze_board_state(int ai_level);
+void ai_analyze_board_state(void);
+int minimax(int);
 
 int main()
 {
@@ -41,7 +42,7 @@ int main()
 void game(int player_choice)/*Game loop logic*/
 {
 	int ai_level,seed,response = 0;//buffer for values returned by functions
-	bool current_player = false;
+	int current_player = 0;//default state. 1 for 'x', -1 for 'o'
 	char buffer[20],p1[100],p2[100],language[5]; //Player names and buffer for input.
 	time_t tt;
 	int i,p;//loop controlers
@@ -68,15 +69,15 @@ void game(int player_choice)/*Game loop logic*/
 		printf("%s\n",game_strings[2]);
 		print_board();
 		if(seed%2 == 0){
-			current_player = false;
+			current_player =1;
 		}else{
-			current_player = true;
+			current_player =-1;
 		}
-		printf("%s%s\n", current_player==true?p1:p2,game_strings[3]);
+		printf("%s%s\n", current_player==-1?p1:p2,game_strings[3]);
 		for(i = 0;i<9;i++)/*Main gameplay loop*/
 		{
 			if(player_choice == 2){
-			printf("%s%s\n", current_player == true?p1:p2,game_strings[4]);
+			printf("%s%s\n", current_player == 1?p1:p2,game_strings[4]);
 			fgets(buffer, sizeof buffer, stdin);
 			input = strtol(buffer,NULL,10);
 			response = move(input, current_player);
@@ -91,7 +92,7 @@ void game(int player_choice)/*Game loop logic*/
 			* be seen at glance - if move() returned error, we'll repeat move until
 			* we get expected  response
 			*/
-		} else if(current_player == true && player_choice == 1){
+		} else if(current_player == -1 && player_choice == 1){
 				printf("%s%s\n",p1,game_strings[4]);
 				fgets(buffer, sizeof buffer, stdin);
 				input = strtol(buffer,NULL,10);
@@ -102,19 +103,16 @@ void game(int player_choice)/*Game loop logic*/
 					input = strtol(buffer,NULL,10);
 					response = move(input, current_player);
 				}
-			} else if(current_player == false){
-					input = ai_analyze_board_state(ai_level);
-					printf("%s %d!\n",game_strings[6],input);
-					response = move(input, current_player);
-					while(response == -1) {
-						input = ai_analyze_board_state(ai_level);
-						response = move(input, current_player);}}
+			} else if(current_player == 1){
+					printf("%s ",game_strings[6]);
+					ai_analyze_board_state();
+}
 				/*We still want to check whether PC didn't try to occupy occupied field,
 				however there is no need to print out a warning*/
 				print_board();
-				current_player = !current_player;//Turn is about to end, so turn bool's value is reversed
+				current_player = current_player*(-1);//Turn is about to end, so turn bool's value is reversed
 				if(i >= 4 && (win_condition_check() == 1 || win_condition_check() == -1)){
-					printf("%s %s\n", win_condition_check() == 1?p1:p2,game_strings[7]);
+					printf("%s %s\n", win_condition_check() == -1?p1:p2,game_strings[7]);
 					break;
 				}/*win_condition_check checks the state of the board and if it returns player_id,
 					* then we finish the game and print out winner's nickname*/
@@ -139,14 +137,14 @@ void game(int player_choice)/*Game loop logic*/
 	}
 }
 
-int move(char pole, bool current_player)
+int move(char pole, int current_player)
 {
 	int i,p;
 	for(i = 0;i<3;i++){
 		for(p = 0;p<3;p++){
 			if(pole-1 == i*3+p)
 				if (board[i][p] == '#'){
-					board[i][p] = (current_player) ? 'X' : 'O'; return 0;
+					board[i][p] = (current_player)==-1 ? 'X' : 'O'; return 0;
 				}
 	/*If field is not occupied(its value is hashtag), take up that field.
 	Otherwise return error which can be processed by loop in game()*/
@@ -168,7 +166,7 @@ int win_condition_check()
 	for(i=0;i<8;i++){
 		for(p=0;p<3;p++){
 			if(board[wins[i][p][0]][wins[i][p][1]]=='X'&&p==2)
-				return 1;
+				return -1;
 			else if(board[wins[i][p][0]][wins[i][p][1]]=='X')
 				continue;
 			else
@@ -178,7 +176,7 @@ int win_condition_check()
 	for(i=0;i<8;i++){
 		for(p=0;p<3;p++){
 			if(board[wins[i][p][0]][wins[i][p][1]]=='O'&&p==2)
-				return -1;
+				return 1;
 			else if(board[wins[i][p][0]][wins[i][p][1]]=='O')
 				continue;
 			else
@@ -188,85 +186,47 @@ int win_condition_check()
 
 				return 0;
 }
-int ai_analyze_board_state(int ai_level)
-{
-	int i,p,pole,x_index,y_index;
-	x_index = 0;
-	y_index = 0;
-	pole = 0;
-	if(ai_level >= 2)
-	for(i = 0 ; i < 3 ; i++){
-		for(p = 0; p < 3 ; p++){
-			if((board[i][p-2] == board[i][p-1] == 'O' && board[i][p] == '#' && p == 2)||
-			(board[i][p+1] == board[i][p+2] == 'O' && board[i][p] == '#' && p == 0)||
-			(board[i][p-1] == board[i][p+1] == 'O' && board[i][p] == '#' && p == 1) ||
-			(board[i+1][p] == board[i+2][p] == 'O' && board[i][p] == '#' && i == 0)||
-			(board[i-1][p] == board[i+1][p] == 'O' && board[i][p] == '#' && i == 1) ||
-			(board[i-1][p] == board[i-2][p] == 'O' && board[i][p] == '#' && i == 2)||
-			(board[i][i] == '#' && board[i+1][i+1] == board[i+2][i+2] == 'O' && p == i)||
-			(board[i][i] == '#' && board[i-1][i-1] == board[i-2][i-2] == 'O' && p == i)||
-			(board[i][i] == '#' && board[i-1][i-1] ==  board[i+1][i+1] == 'O' && p == i)||
-			(board[i][p] == '#' && board[i-1][p+1] == board[i-2][p+2] == 'O' && i == 2 && p == 0)||
-			(board[i][p] == '#' && board[i+1][p-1] ==  board[i-1][p+1] == 'O' && i == 1 && p == 1)||
-			(board[i][p] == '#' && board[i+1][p-1] == board[i+2][p-2] == 'O' && i == 0 && p == 2)){
-				pole = i*3+p+1;
-				return pole;
+void ai_analyze_board_state(){
+	int move_i=-1,move_j=-1;
+	int score=-2;
+	int i,j;
+	for(i=0;i<3;++i){
+		for(j=0;j<3;++j){
+			if(board[i][j]=='#'){
+				board[i][j]='O';
+				int tempScore=-minimax(-1);
+				board[i][j]='#';
+				if(tempScore>score){
+					score=tempScore;
+					move_i=i;
+					move_j=j;
+				}
+
 			}
 		}
 	}
-	if(ai_level >= 3)
-	for(i=0;i<3;i++){
-		for(p=0;p<3;p++){
-			if((board[i][p-2] == board[i][p-1] == 'X' && board[i][p] == '#' && p == 2)||
-			(board[i][p+1] == board[i][p+2] == 'X' && board[i][p] == '#' && p == 0)||
-			(board[i][p-1] ==  board[i][p+1] == 'X' && board[i][p] == '#' && p == 1) ||
-			(board[i+1][p] ==  board[i+2][p] == 'X' && board[i][p] == '#' && i == 0)||
-			(board[i-1][p] ==  board[i+1][p] == 'X' && board[i][p] == '#' && i == 1) ||
-			(board[i-1][p] ==  board[i-2][p] == 'X' && board[i][p] == '#' && i == 2)||
-			(board[i][i] == '#' && board[i+1][i+1] == board[i+2][i+2] == 'X' && p == i)||
-			(board[i][i] == '#' && board[i-1][i-1] ==  board[i-2][i-2] == 'X' && p == i)||
-			(board[i][i] == '#' && board[i-1][i-1] == board[i+1][i+1] == 'X' && p == i)||
-			(board[i][p] == '#' && board[i-1][p+1] ==  board[i-2][p+2] == 'X' && i == 2 && p == 0)||
-			(board[i][p] == '#' && board[i+1][p-1] ==  board[i-1][p+1] == 'X' && i == 1 && p == 1)||
-			(board[i][p] == '#' && board[i+1][p-1] ==  board[i+2][p-2] == 'X' && i == 0 && p == 2)){
-				pole = i*3+p+1;
-				return pole;
-			}
-		}
-	}
-	if(board[1][1] == '#'&&ai_level>=1){
-		return 5;
-	}
-	if(ai_level>=4){
-	for(i=0;i<3;i++){
-		for(p=0;p<3;p++){
-			if((board[i+2][p-2]=='X'&&board[i][p]=='#')||(board[i+2][p+2]=='X'&&
-			board[i][p]=='#')||(board[i-2][p+2]=='X'&&board[i][p]=='#')||
-		(board[i-2][p-2]=='X'&&board[i][p]=='#')){
-				pole=i*3+p+1;
-				return pole;
-			}
-		}
-	}
+	printf(" %d!\n",3*move_i+move_j+1);
+	board[move_i][move_j]='O';
 }
-if(ai_level >= 1)
-	for(i=0;i<3;i++){
-		for(p=0;p<3;p++){
-			if(board[i][p] == '#'&&ai_level>=1){
-				x_index = rand();
-				y_index = rand();
-				y_index = y_index%3;
-				x_index = x_index %3;
-				if(board[x_index][y_index] == '#')
-					return (3*x_index+y_index+1);
+int minimax(int player){
+	int winner=win_condition_check();
+	if(winner!=0)
+		return winner*player;
+	int move = -1;
+	int score = -2;
+	int i,j;
+	for(i=0;i<3;++i){
+		for(j=0;j<3;++j){
+			if(board[i][j]=='#'){
+				board[i][j]=(player==-1?'X':'O');
+				int tempScore=-minimax(-1*player);
+				if(tempScore>score){
+					score=tempScore;
+					move=3*i+j;
+				}
+				board[i][j]='#';
 			}
 		}
 	}
+	return move==-1?0:score;
 }
-/*AI priorities as of v0.1.0
- *1. If AI can win (it has two fields next to eachother), it will.
- *2. If AI can prevent Human from winning (human is about to meet AI's no.1 win
- *condition), it will do so.
- *3. If AI can take up middle spot, it will.
- *4. AI takes up random spot.
- */

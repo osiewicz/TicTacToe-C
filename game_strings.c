@@ -33,7 +33,7 @@ const char **strings(char *language)
   }
   else{
     printf("Your package is corrupted! Please consider redownloading"
-    "whole package at https://github.com/41r0/TicTacToe-C\n");
+    " whole package at https://github.com/41r0/TicTacToe-C\n");
     exit(0);
   }
 

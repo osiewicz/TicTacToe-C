@@ -26,6 +26,7 @@ char* settings(const int val)
         buffer= strtok(settings_array[i],":");
         if((strcmp(settings_labels[i],settings_array[i]))!=0){
           printf("Your configuration file is corrupted!'%s' is not equal to '%s'! Your config will be restored to default.\n",settings_array[i],settings_labels[i]);
+          fclose(fp);
           settings(-1);
         }
         buffer= strtok(NULL,":");
@@ -37,7 +38,8 @@ char* settings(const int val)
         }
       }
     if(((strcmp(lang,languages[0])!=0)&&(strcmp(lang,languages[1])!=0))||(ai_level>5||ai_level<0)){
-      printf("Your config is incorrect. Generating new one...");
+      printf("Your config is incorrect. Generating new one...\n");
+      fclose(fp);
       settings(-1);
     }
     if(val>1&&val<=5){
@@ -54,7 +56,7 @@ char* settings(const int val)
     "Player1_name:Peter\n"
     "Player2_name:Michael");
     fclose(fp);
-    settings(1);
+    return 0;
   }
   return 0;
 }
