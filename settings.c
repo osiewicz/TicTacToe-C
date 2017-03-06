@@ -19,37 +19,38 @@ char* settings(const int val)
   ssize_t read;
   size_t len=0;
   if(val>=1&&val<=5){
-  if((fp = fopen("settings.ini","r"))){
-    for(i=0;i<4;i++)
-      if ((read=getline(&buffer, &len, fp))>0){
-        strcpy(settings_array[i],buffer);
-        buffer= strtok(settings_array[i],":");
-        if((strcmp(settings_labels[i],settings_array[i]))!=0){
-          printf("Your configuration file is corrupted!'%s' is not equal to '%s'! Your config will be restored to default.\n",settings_array[i],settings_labels[i]);
-          fclose(fp);
-          settings(-1);
-        }
-        buffer= strtok(NULL,":");
-        buffer[strcspn(buffer, "\n")] = 0;
-        strcpy(settings_array[i],buffer);
-        if(ai_level_buff==settings_array[i]){
-          ai_level=strtol(ai_level_buff,NULL,10);
-          *settings_array[i]=ai_level;
+    if((fp = fopen("settings.ini","r"))){
+      for(i=0;i<4;i++){
+        if ((read=getline(&buffer, &len, fp))>0){
+          strcpy(settings_array[i],buffer);
+          buffer= strtok(settings_array[i],":");
+          if((strcmp(settings_labels[i],settings_array[i]))!=0){
+            printf("Your configuration file is corrupted!'%s' is not equal to '%s'! Your config will be restored to default.\n",settings_array[i],settings_labels[i]);
+            fclose(fp);
+            settings(-1);
+          }
+          buffer= strtok(NULL,":");
+          buffer[strcspn(buffer, "\n")] = 0;
+          strcpy(settings_array[i],buffer);
+          if(ai_level_buff==settings_array[i]){
+            ai_level=strtol(ai_level_buff,NULL,10);
+            *settings_array[i]=ai_level;
+          }
         }
       }
-    if(((strcmp(lang,languages[0])!=0)&&(strcmp(lang,languages[1])!=0))||(ai_level>5||ai_level<0)){
-      printf("Your config is incorrect. Generating new one...\n");
-      fclose(fp);
-      settings(-1);
-    }
-    if(val>1&&val<=5){
-    return settings_array[val-2];
-  }
-  }else{
-    printf("Your configuration file doesn't exist!\n");
-    settings(-1);
-  }
-} else  if(val==-1){
+      if(((strcmp(lang,languages[0])!=0)&&(strcmp(lang,languages[1])!=0))||(ai_level>5||ai_level<0)){
+        printf("Your config is incorrect. Generating new one...\n");
+        fclose(fp);
+        settings(-1);
+      }
+      if(val>1&&val<=5){
+        return settings_array[val-2];
+      }
+      }else{
+        printf("Your configuration file doesn't exist!\n");
+        settings(-1);
+      }
+  } else  if(val==-1){
     fp=fopen("settings.ini","wb");
     fprintf(fp,"Language:en-gb\n"
     "AI_level:2\n"

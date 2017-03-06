@@ -20,8 +20,7 @@ const char **strings(char *language)
       " GitHub repository.",language);
       exit(0);
     }
-  }
-  else if(strcmp(language,"pl-pl")==0){
+  } else if(strcmp(language,"pl-pl")==0){
     if( access( ".pl-pl.lang", F_OK ) != -1 ) {
       fp=fopen(".pl-pl.lang","r");
     } else {
@@ -30,8 +29,7 @@ const char **strings(char *language)
       " GitHub repository.",language);
       exit(0);
     }
-  }
-  else{
+  } else{
     printf("Your package is corrupted! Please consider redownloading"
     " whole package at https://github.com/41r0/TicTacToe-C\n");
     exit(0);
@@ -43,7 +41,7 @@ const char **strings(char *language)
       *newline_char=0;
       continue;
     }
-    }
+  }
   return (const char**)text;
 }
 
