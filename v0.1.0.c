@@ -75,12 +75,7 @@ void game(int player_choice)/*Game loop function*/
 					input = strtol(buffer,NULL,10);
 					response = move(input, current_player);
 				}
-			/*response holds the return of move function, which returns 0 on success
-			* and -1 on failure - code above is rather repeptitive and a pattern can
-			* be seen at glance - if move() returned error, we'll repeat move until
-			* we get expected  response
-			*/
-			}
+		}
 				print_board();
 				current_player = current_player*(-1);//Turn is about to end, so turn bool's value is reversed
 				if(turn_count >= 4 && (win_condition_check() == 1 || win_condition_check() == -1)){

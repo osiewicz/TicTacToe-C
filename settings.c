@@ -59,5 +59,7 @@ char* settings(const int val)
     fclose(fp);
     return 0;
   }
+  if(fp)
+  	fclose(fp);
   return 0;
 }

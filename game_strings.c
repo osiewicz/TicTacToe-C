@@ -31,24 +31,19 @@ const char **strings(char *language)
     }
   } else{
     printf("Your package is corrupted! Please consider redownloading"
-    " whole package at https://github.com/41r0/TicTacToe-C\n");
+    " whole package at https://github.com/PiotrOsiewicz/TicTacToe-C\n");
     exit(0);
   }
-
-  for(i=0;!feof(fp);i++){
-    if(getline(&(text)[i],&t,fp)>0){
-      newline_char=strpbrk(text[i],"\n");
-      *newline_char=0;
-      continue;
-    }
+  if(fp){
+  	for(i=0;!feof(fp);i++){
+    			if(getline(&(text)[i],&t,fp)>0){
+      				newline_char=strpbrk(text[i],"\n");
+      				*newline_char=0;
+      				continue;
+    			}
+  	}
+ 	 fclose(fp);
   }
   return (const char**)text;
 }
 
-/*
- * This part of cose is responsible for loading .lang files
- * (those are written in plain text by the way). It is rather easy to translate
- * this game into your language as all you have to do is to include your
- * translation in check logic above (lines 14-38). I have also removed newlines
- * from strings because they have caused inconsistent behaviour with printf.
- */
