@@ -1,10 +1,9 @@
-Tictactoe v0.1.0
 Would you like to play against PC(1) or human?(1/2)
 Here's the board! Familiarize yourself with it.
  starts!
 , which field would you like to fill?
 Field you have chosen doesn't exist or is already occupied!
-AI chose field no.
+chose field no.
 won!
 A draw!
 Would you like to play again?(Y/n)

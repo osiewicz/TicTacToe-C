@@ -1,4 +1,4 @@
-/Legacy
 *.out
 *.ini
-/server
+*.un~
+TicTacToe

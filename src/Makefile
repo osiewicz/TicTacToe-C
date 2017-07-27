@@ -1,15 +1,19 @@
- CC=gcc
- CFLAGS=
+IDIR=../include
+CC=gcc
+CFLAGS=-I$(IDIR) -std=c99
 
 ODIR=obj
 LDI =../lib
 
-LIBS=-lm
+LIBS=
 
-_OBJ = v0.1.0.o 
+_DEPS = game_strings.h tic_tac_toe.h
+DEPS = $(patsubst $,$(IDIR)/%,$(_DEPS))
+
+_OBJ =  game_strings.o tic_tac_toe.o 
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-$(ODIR)/%.o: %.c 
+$(ODIR)/%.o: %.c  
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 Tic-Tac-Toe: $(OBJ)
