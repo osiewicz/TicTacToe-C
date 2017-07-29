@@ -11,7 +11,6 @@ static struct game_settings *init_game_settings()
 	result->AI_name = malloc(sizeof(char) * BUFF_SIZE);
 	result->game_strings = NULL;
 	result->board_size = 0;
-	result->win_check = NULL;
 	memset(result->language,0,BUFF_SIZE);
 	memset(result->p1_name,0,BUFF_SIZE);
 	memset(result->p2_name,0,BUFF_SIZE);
@@ -44,7 +43,7 @@ int main(int argc,char *argv[])
 
 void game(int player_choice,const struct game_settings *settings)
 {
-	char buffer[3], *p2_name, *p1_name;
+	char buffer[5], *p2_name, *p1_name;
 	char **board = malloc(sizeof(char*)*settings->board_size);
 	int seed,response = 0;
 	char current_player = 0;//default state. 1 for 'x', -1 for 'o'
@@ -71,33 +70,38 @@ void game(int player_choice,const struct game_settings *settings)
 	for(turn_count = 0;turn_count < settings->board_size * settings->board_size ;turn_count++)/*Main gameplay loop*/
 	{
 		if (current_player == 1 && player_choice == 1){
-			input = ai_analyze_board_state(board,settings->board_size,settings->win_check);
+			input = ai_analyze_board_state(board,settings->board_size);
 		}else{
 			printf("%s%s\n", ((current_player == -1) ? p1_name : p2_name),settings->game_strings[3]);
-			fgets(buffer, sizeof buffer, stdin);
+			fgets(buffer, sizeof(buffer), stdin);
 			input = strtol(buffer,NULL,10);
+			memset(buffer,0,5);
 		}
 		response = move(input, current_player,board,settings->board_size);
 		while(response == -1) {
+			printf("%d",input);
 			printf("%s\n", settings->game_strings[4]);
-			fgets(buffer, sizeof buffer, stdin);
+			fgets(buffer, sizeof(buffer), stdin);
 			input = strtol(buffer,NULL,10);
 			response = move(input, current_player,board,settings->board_size);
 		}
 		printf("%s %s %d!\n",(current_player == -1 ? p1_name : p2_name),settings->game_strings[5],input);
 		print_board(board,settings->board_size);
 		current_player = current_player*(-1);//Turn is about to end, so turn bool's value is reversed
-		int game_state = settings->win_check(board);
-		if(turn_count >= (settings->board_size-1) * (settings->board_size - 1)
-				&& (game_state == 1 || game_state == -1)){
+		int game_state = win_check(board,settings->board_size);
+		if(  (game_state == 1 || game_state == -1)){
 			printf("%s %s\n", (game_state == -1) ? p1_name : p2_name,settings->game_strings[6]);
 			break;
 		}
 	}
 
-	if(settings->win_check(board) == 0) {
+	if(win_check(board,settings->board_size) == 0) {
 		printf("%s\n",settings->game_strings[7]);
 	}
+	for(int i = 0; i < settings->board_size; i++){
+		free(board[i]);
+	}
+	free(board);
 }
 
 int move(char field, int current_player,char **board,int board_size)
@@ -131,50 +135,81 @@ void print_board(char **board, int board_size)
 	printf("\n");
 }
 
-int x2_win_check(char **board)
+unsigned ***wins_generator(int board_size){
+	int wins_count = (board_size == 1 ? 1 : 2*board_size + 2);
+	unsigned ***wins = malloc(sizeof(unsigned**) * wins_count);
+	for(int i=0;i<wins_count;i++){
+		wins[i] = malloc(sizeof(unsigned*) * board_size);
+		for(int j=0;j<board_size;j++){
+			wins[i][j] = malloc(sizeof(unsigned)*2);
+		}
+	}
+	int i,t=0;
+	for(i = 0; i < board_size; i++){
+		for(int j = 0; j <board_size;j++){
+			wins[i][j][0] = j;
+			wins[i][j][1] = t;
+			wins[i+board_size][j][0] = t;
+			wins[i+board_size][j][1] = j;
+		}
+		t++;
+	}
+	t = 0;
+	for(; i < 2*board_size; i++){
+		for(int j = 0; j <board_size;j++){
+			wins[i][j][0] = t;
+			wins[i][j][1] = j;
+		}
+		t++;
+	}
+	for(int j=0;j<board_size;j++){
+		wins[i][j][0]=j;
+		wins[i][j][1]=j;
+	}
+	i++;
+	for(int j=0;j<board_size;j++){
+		wins[i][j][0]=board_size-j-1;
+		wins[i][j][1]=j;
+	}
+	return wins;
+}
+
+void printf_wins(unsigned ***wins,int board_size)
+{
+	/* For debugging purposes only */
+	for(int i = 0;i<2*board_size+2;i++){
+		for(int j=0;j<board_size;j++){
+			printf("%u,%u|",wins[i][j][0],wins[i][j][1]);
+		}
+		printf("\n");
+	}
+}
+int win_check(char **board,int board_size)
 {
 	int i,p;
-	const unsigned wins[6][2][2] = {{{0,0},{0,1}},{{0,0},{1,0}},{{0,0},{1,1}},
-					{{0,1},{1,0}},{{0,1},{1,1}},{{1,0},{1,1}}};
-	for(i = 0;i<6;i++){
-		for(p=0;p<2;p++){
-			if(board[wins[i][p][0]][wins[i][p][1]] == 'X' && p == 1) {
+	static unsigned ***wins = NULL;
+	static long long calls = 0;
+	if(wins == NULL){
+		wins = wins_generator(board_size);
+	}
+	for(i = 0;i<2*board_size+2;i++){
+		for(p=0;p<board_size;p++){
+			if(board[wins[i][p][0]][wins[i][p][1]] == 'X' && p == board_size - 1) {
+				free(wins);
+				wins = NULL;
 				return -1;
 			} else if(board[wins[i][p][0]][wins[i][p][1]] != 'X') {
 				break;
 			}
 		}
 	}
-	for(i = 0;i<6;i++){
-		for(p=0;p<2;p++){
-			if(board[wins[i][p][0]][wins[i][p][1]] == 'O' && p == 1) {
+	for(i = 0;i<2*board_size+2;i++){
+		for(p=0;p<board_size;p++){
+			if(board[wins[i][p][0]][wins[i][p][1]] == 'O' && p == board_size - 1) {
+				free(wins);
+				wins = NULL;
 				return 1;
 			} else if(board[wins[i][p][0]][wins[i][p][1]] != 'O') {
-				break;
-			}
-		}
-	}
-}
-int x3_win_check(char **board)
-{
-	int i,p;
-	const unsigned wins[8][3][2] = {{{0,0}, {0,1}, {0,2}}, {{1,0}, {1,1}, {1,2}},
-		{{2,0}, {2,1}, {2,2}}, {{0,0}, {1,0},{2,0}}, {{0,1}, {1,1}, {2,1}},
-		{{0,2}, {1,2}, {2,2}}, {{0,0}, {1,1}, {2,2}}, {{0,2}, {1,1}, {2,0}}};
-	for(i=0;i<8;i++){
-		for(p=0;p<3;p++){
-			if (board[ wins[i][p][0] ][ wins[i][p][1] ] == 'X' && p == 2) {
-				return -1;
-			} else if(board[ wins[i][p][0] ][ wins[i][p][1] ] != 'X') {
-				break;
-			}
-		}
-	}
-	for(i=0;i<8;i++){
-		for(p=0;p<3;p++){
-			if(board[ wins[i][p][0] ][ wins[i][p][1] ] == 'O' && p == 2) {
-				return 1;
-			} else if(board[ wins[i][p][0] ][ wins[i][p][1] ] != 'O') {
 				break;
 			}
 		}
@@ -182,14 +217,15 @@ int x3_win_check(char **board)
 	return 0;
 }
 
-int ai_analyze_board_state(char **board,int board_size,int (*win_check)(char **board)){
+int ai_analyze_board_state(char **board,int board_size)
+{
 	int move_i = -1, move_j = -1;
 	int score = -2;
 	for(int i=0;i<board_size;++i){
 		for(int j=0;j<board_size;++j){
 			if(board[i][j] == '#') {
 				board[i][j] = 'O';
-				int tempScore = -minimax(-1,board,board_size,win_check);
+				int tempScore = -minimax(-1,board,board_size);
 				board[i][j] = '#';
 				if(tempScore > score){
 					score = tempScore;
@@ -202,8 +238,10 @@ int ai_analyze_board_state(char **board,int board_size,int (*win_check)(char **b
 	return board_size * move_i + move_j + 1;
 }
 
-int minimax(int player,char **board,int board_size,int (*win_check)(char **board)){
-	int winner = win_check(board);
+
+int minimax(int player,char **board,int board_size)
+{
+	int winner = win_check(board,board_size);
 	if (winner != 0) {
 		return winner*player;
 	}
@@ -214,10 +252,10 @@ int minimax(int player,char **board,int board_size,int (*win_check)(char **board
 		for(j=0;j<board_size;++j){
 			if( board[i][j] == '#'){
 				board[i][j] = (player == -1 ? 'X' : 'O');
-				int tempScore = -minimax(-1*player,board,board_size,win_check);
-				if(tempScore > score){
-					score = tempScore;
-					move = board_size * i + j;
+				int temp_score = -minimax(-1*player,board,board_size);
+				if(temp_score > score){
+					score = temp_score;
+					move = board_size * i + j + 1;
 				}
 				board[i][j] = '#';
 			}
@@ -233,7 +271,6 @@ struct game_settings *parse_cmd_args(int argc, char *argv[]) {
 	result->p2_name = "Player 2";
 	result->AI_name = "AI";
 	result->board_size = 3;
-	result->win_check = x3_win_check;
 	for(int i = 1; i < argc; i++){
 		if( strncmp(argv[i],"-",1) == 0){
 			if(argc - i > 1 && (strcmp(argv[i],"-l") == 0 ||
@@ -254,19 +291,8 @@ struct game_settings *parse_cmd_args(int argc, char *argv[]) {
 				i++;
 			} else if(argc - i > 1 && strcmp(argv[i],"--b_size") == 0
 					&& strncmp(argv[i+1],"--",2) != 0 ) {
-				switch(argv[i+1][0]){
-					case '3':
-						result->board_size = 3;
-						result->win_check = x3_win_check;
-						break;
-					case '2':
-						result->board_size = 2;
-						result->win_check = x2_win_check;
-						break;
-					default:
-						break;
-				}
-				i++;
+					result->board_size = strtol(argv[i+1],NULL,10);
+					i++;
 			} else {
 				printf("%s: Unknown command-line parameter: %s\n",argv[0],argv[i]);
 			}
