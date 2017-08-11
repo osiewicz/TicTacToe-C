@@ -235,7 +235,7 @@ int ai_analyze_board_state(char **board,int board_size,int current_player)
 {
 	int move_i = -1, move_j = -1;
 	int score = -2;
-	const int depth_b_size_ratio = board_size*5/3;
+	const int depth_b_size_ratio = board_size+4;
 	/* 5/3 is a magic number, but that's what
 	 * I found working well for each kind of input
 	 */
