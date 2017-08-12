@@ -1,5 +1,5 @@
 # TicTacToe
-## Current version: 1.3.1
+## Current version: 1.4.0
 #### A simple implementation of immortal game, where two players, X and O, take turns marking the spaces in a 3×3 grid. The player who succeeds in placing three of their marks in a horizontal, vertical, or diagonal row wins the game.
 
 
@@ -35,5 +35,8 @@ All you need to do is follow the convention of .lang files - each line has its c
 
 **--p2_sign** -see p1_sign. (default: O)  
 
-**--ff_sign** -Stands for 'free field sign'. see p1_sign. (default: #)
+**--ff_sign** -Stands for 'free field sign'. see p1_sign. (default: #)  
+
+**--ai_vs_ai** -Let AI play versus itself when AI is chosen in menu. (default: 0)
+
 
