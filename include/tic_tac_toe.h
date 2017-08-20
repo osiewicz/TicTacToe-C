@@ -1,6 +1,6 @@
 #pragma once
 
-#define TTT_VERSION "1.4.0"
+#define TTT_VERSION "1.5.0"
 #define BUFF_SIZE 256
 #define _GNU_SOURCE
 #include <time.h>
@@ -21,7 +21,6 @@ struct game_settings{
 	int board_size;
 };
 
-int ai_analyze_board_state(char *board,int board_size,int current_player);
 int game(int AI_on,const struct game_settings *settings);
 int minimax(int player,char *board,int board_size,int depth,int alpha,int beta,int init_player);
 int move(char field, int current_player,char *board,int board_size);

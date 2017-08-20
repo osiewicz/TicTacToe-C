@@ -70,7 +70,7 @@ int game(int AI_on,const struct game_settings *settings)
 	for(turn_count = 0;turn_count < settings->board_size * settings->board_size ;turn_count++)/*Main gameplay loop*/
 	{
 		if ((settings->ai_vs_ai == 1 || current_player == 1) && AI_on == 1){
-			input = ai_analyze_board_state(board,settings->board_size,current_player);
+			input = minimax(current_player,board,settings->board_size, settings->board_size+5,-100000,100000,current_player);
 		}else{
 			printf("%s%s\n", ((current_player == -1) ? p1_name : p2_name),settings->game_strings[3]);
 			fgets(buffer, sizeof(buffer), stdin);
@@ -188,10 +188,10 @@ int fields_count(char *board,int board_size,int field)
 {
 	int count = 0;
 	for(int i = 0;i<board_size*board_size;i++){
-			if(board[i] == field){
-				count++;
-			}
+		if(board[i] == field){
+			count++;
 		}
+	}
 	return count;
 }
 
@@ -214,57 +214,43 @@ int win_check(char *board,int board_size,int current_player)
 	return 0;
 }
 
-int ai_analyze_board_state(char *board,int board_size,int current_player)
-{
-	int move = -2;
-	int score = -2;
-	const int depth_b_size_ratio = board_size+4;
-	/* 4 is a magic number, but that's what
-	 * I found working well for most inputs.
-	 */
-	for(int i=0;i<board_size*board_size;++i){
-		if(board[i] == 0) {
-			board[i] = current_player;
-			int tempScore = minimax(-current_player,board,board_size,
-					depth_b_size_ratio,-100000,100000,current_player);
-			board[i] = 0;
-			if(tempScore >= score){
-				score = tempScore;
-				move = i;
-			}
-		}
-	}
-	return move+1;
-}
-
 int minimax(int player,char *board,int board_size,int depth,int alpha,int beta,int init_player)
 {
 	int winner = win_check(board,board_size,player);
 	if(depth == 0 || (winner == 0 && fields_count(board,board_size,0) == 0) ){
 		return 0;
 	}
-	if (winner != 0) {
+	if (winner != 0 && depth != board_size+5) {
 		return (board_size*board_size-depth)*(winner==init_player?1:-1);
 	}
 	int i,j;
 	int move = -1;
+	int MyMove = 0;
+	int MyScore;
+	int score = -200000;
 	for(i=0;i<board_size*board_size;++i){
 		if( board[i] == 0){
 			board[i] = player;
-			int MyScore = minimax(-player,board,board_size,depth-1,alpha,beta,init_player);
+			MyScore = minimax(-player,board,board_size,depth-1,alpha,beta,init_player);
 			board[i] = 0;
-			if(player == -init_player){
+			if(MyScore>=score&&depth ==board_size+5){
+				MyMove = i;
+				score = MyScore;
+			}
+			if(player == -init_player && depth!=board_size+5){
 				beta = (MyScore > beta? beta: MyScore); 
-			} else if(player == init_player){
+			} else if(player == init_player && depth != board_size+5){
 				alpha = (MyScore < alpha? alpha: MyScore);
 			}
-			if(beta <= alpha) {
+
+			if(beta <= alpha && depth != board_size+5) {
 				return (player == init_player? alpha: beta);
 			}
 			move = i;
+
 		}
 	}
-	return move == -1? 0 : (player == init_player? alpha: beta);
+	return depth==board_size+5?MyMove+1:move==-1?0:(player == init_player? alpha: beta);
 }
 
 struct game_settings *parse_cmd_args(int argc, char *argv[]) {
@@ -298,7 +284,9 @@ struct game_settings *parse_cmd_args(int argc, char *argv[]) {
 				i++;
 			} else if(argc - i > 1 && (strcmp(argv[i],"--b_size") == 0 ||
 					strcmp(argv[i],"-s") == 0) && strncmp(argv[i+1],"--",2) != 0 ) {
-				result->board_size = strtol(argv[i+1],NULL,10);
+				if(result->board_size<2){
+					result->board_size = strtol(argv[i+1],NULL,10);
+				}
 				i++;
 			} else if(argc - i > 1 && (strcmp(argv[i],"--p1_sign") == 0) &&
 					strlen(argv[i+1]) == 1){
