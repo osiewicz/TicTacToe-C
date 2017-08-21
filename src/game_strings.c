@@ -1,7 +1,5 @@
 #include <game_strings.h>
 
-void eprintf(char *fmt, ...);
-
 static FILE *open_lang_file(const char *language)
 {
 	FILE *fp;
@@ -14,29 +12,33 @@ static FILE *open_lang_file(const char *language)
 		if (!fp) {
 			eprintf("open_lang_file: Failed to open file .%s.lang:", language);
 		}
+		free(filename);
 	} else {
 		eprintf("open_lang_file: File \".%s.lang\" was not found:", language);
 	}
 	return fp;
 }
 
-const char **strings(char *language)
+const char **load_strings(char *language)
 {
 	char *newline_char;
 	static char *(text)[15];
 	int i;
 	FILE *fp = open_lang_file(language);
-	size_t t = 100;
+	size_t t = 0;
 
 	if (fp) {
-		for(i=0;!feof(fp);i++){
-				if (getline(&(text)[i],&t,fp)>0){
-					newline_char=strpbrk(text[i],"\n");
-					*newline_char=0;
-					continue;
+		for(i=0;i<15 && !feof(fp);i++){
+			text[i] = NULL;
+			t = 0;
+			/* Getline allocates memory when passed NULL and t = 0*/
+			if (getline(&(text)[i],&t,fp)>0){
+				newline_char=strpbrk(text[i],"\n");
+				*newline_char=0;
+				continue;
 			}
 		}
-	fclose(fp);
+		fclose(fp);
 	} else {
 		eprintf("Failed to open language file");
 	}

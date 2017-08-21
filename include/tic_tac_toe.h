@@ -1,6 +1,6 @@
 #pragma once
 
-#define TTT_VERSION "1.5.0"
+#define TTT_VERSION "1.5.1"
 #define BUFF_SIZE 256
 #define _GNU_SOURCE
 #include <time.h>

@@ -2,21 +2,6 @@
 #include <game_strings.h>
 #include <tic_tac_toe.h>
 
-static struct game_settings *init_game_settings()
-{
-	struct game_settings *result = malloc(sizeof(struct game_settings));
-	result->AI_name = malloc(sizeof(char) * BUFF_SIZE);
-	result->language = malloc(sizeof(char) * BUFF_SIZE);
-	result->p1_name = malloc(sizeof(char) * BUFF_SIZE);
-	result->p2_name = malloc(sizeof(char) * BUFF_SIZE);
-	result->game_strings = NULL;
-	result->board_size = 0;
-	memset(result->language,0,BUFF_SIZE);
-	memset(result->p1_name,0,BUFF_SIZE);
-	memset(result->p2_name,0,BUFF_SIZE);
-	memset(result->AI_name,0,BUFF_SIZE);
-}
-
 int main(int argc,char *argv[])
 {
 	char *menu_choice = malloc(sizeof(char)*3);
@@ -36,6 +21,7 @@ int main(int argc,char *argv[])
 	} while(*menu_choice == 'Y' || *menu_choice == 'y');
 
 	free(settings);
+	free(settings->game_strings);
 	free(menu_choice);
 
 	return 0;
@@ -223,7 +209,7 @@ int minimax(int player,char *board,int board_size,int depth,int alpha,int beta,i
 	if (winner != 0 && depth != board_size+5) {
 		return (board_size*board_size-depth)*(winner==init_player?1:-1);
 	}
-	int i,j;
+	int i;
 	int move = -1;
 	int MyMove = 0;
 	int MyScore;
@@ -254,7 +240,7 @@ int minimax(int player,char *board,int board_size,int depth,int alpha,int beta,i
 }
 
 struct game_settings *parse_cmd_args(int argc, char *argv[]) {
-	struct game_settings *result = init_game_settings();
+	struct game_settings *result = malloc(sizeof(struct game_settings));
 	result->ai_vs_ai = 0;
 	result->board_size = 3;
 	result->ff_sign = '#';
@@ -284,9 +270,10 @@ struct game_settings *parse_cmd_args(int argc, char *argv[]) {
 				i++;
 			} else if(argc - i > 1 && (strcmp(argv[i],"--b_size") == 0 ||
 					strcmp(argv[i],"-s") == 0) && strncmp(argv[i+1],"--",2) != 0 ) {
-				if(result->board_size<2){
 					result->board_size = strtol(argv[i+1],NULL,10);
-				}
+					if(result->board_size < 2){
+						result->board_size = 3;
+					}
 				i++;
 			} else if(argc - i > 1 && (strcmp(argv[i],"--p1_sign") == 0) &&
 					strlen(argv[i+1]) == 1){
@@ -309,6 +296,6 @@ struct game_settings *parse_cmd_args(int argc, char *argv[]) {
 				printf("%s: Unknown command-line argument: %s\n",argv[0],argv[i]);
 		}
 	}
-	result->game_strings = (char**)strings(result->language);
+	result->game_strings = (char**)load_strings(result->language);
 	return result;
 }
