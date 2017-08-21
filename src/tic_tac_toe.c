@@ -20,8 +20,8 @@ int main(int argc,char *argv[])
 		fgets(menu_choice,3,stdin);
 	} while(*menu_choice == 'Y' || *menu_choice == 'y');
 
-	free(settings);
 	free(settings->game_strings);
+	free(settings);
 	free(menu_choice);
 
 	return 0;

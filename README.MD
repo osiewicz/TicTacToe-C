@@ -1,5 +1,5 @@
 # TicTacToe
-## Current version: 1.5.0
+## Current version: 1.5.2
 #### A simple implementation of immortal game, where two players, X and O, take turns marking the spaces in a 3×3 grid. The player who succeeds in placing three of their marks in a horizontal, vertical, or diagonal row wins the game.
 
 
