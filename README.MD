@@ -1,18 +1,15 @@
 # TicTacToe
-## Current version: 1.5.2
+## Current version: 1.6.0
 #### A simple implementation of immortal game, where two players, X and O, take turns marking the spaces in a 3×3 grid. The player who succeeds in placing three of their marks in a horizontal, vertical, or diagonal row wins the game.
 
-
 ### Fore(after)word:
-I treat this project strictly as a way to improve my C programming skills. I doubt that anyone would be interested in it, but.. here it goes! :)
-Since starting this project, I have implemented:
-* PvAI
-* Multilanguage support
-* Settings support  
-  
+Tic Tac Toe might seem redundant to implement. However, there is some theory to it that makes it an interesting (yet simple) game - this project uses  
+MinMax with AlphaBeta pruning to make sure that AI stays top notch. Unfortunately, on my machine (Intel i5-4670k) it takes way too long for AI to play on 6x6 board.  
+That is my next focus - making AI scalable for *any* (within realms of possibility) board size. 
+If (for whatever reason) you are interested in history of this project, old README files have some of that.
 
-Although AI is far from ideal, I am really proud for what I have done with the project. I will definitely try to revisit it later in the future.  
-I undertook this project mid-October. Bare game was ready in three days. AI was done by the end of November. Most of the work on separate files was done in Januray, as my exam session has caught me off-guard (hopefully it will not happen again). I also planned to prepare server (and GUI) for TTT v0.1.0, however my plans (while being very optimistic to say the least) included immense amount of work which I couldn't take upon myself at the time. It is my dream, however, to revisit this project later on with more experience under my belt. I am proud of what I have done (even though it is a Tic Tac Toe.. that is _pretty_ popular idea).  
+### Installation  
+To install Tic Tac Toe, just run `make` in `TicTacToe/src` . Then, all you need to do is to type "./Tic-Tac-Toe" into your terminal. :) 
 
 ### Contributing  
 If you want to contribute to the project by creating translation file (or improving the code), feel free to do so.   

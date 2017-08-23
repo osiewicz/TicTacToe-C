@@ -1,6 +1,6 @@
 #pragma once
 
-#define TTT_VERSION "1.5.2"
+#define TTT_VERSION "1.6.0"
 #define BUFF_SIZE 256
 #define _GNU_SOURCE
 #include <time.h>
@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-struct game_settings{
+struct settings{
 	char *AI_name;
 	char ff_sign;
 	char **game_strings;
@@ -21,11 +21,19 @@ struct game_settings{
 	int board_size;
 };
 
-int game(int AI_on,const struct game_settings *settings);
-int minimax(int player,char *board,int board_size,int depth,int alpha,int beta,int init_player);
-int move(char field, int current_player,char *board,int board_size);
+void main_menu(struct settings *settings);
+int game(int AI_on,const struct settings *settings);
+int get_random_value(void);
+int move(int field, int current_player,char *board,int board_size);
+int fields_count(char *board,int board_size,int field);
 void print_board(char *board,int board_size,char p1_sign,char p2_sign,char ff_sign);
 unsigned **win_generator(int board_size);
+void printf_wins(unsigned **wins,int board_size);
+int is_ai_turn(int ai_vs_ai, int current_player,int ai_on);
 int win_check(char *board,int board_size,int current_player);
-struct game_settings *parse_cmd_args(int argc, char *argv[]);
-
+int minimax(int player,char *board,int board_size,int depth,int alpha,int beta,int init_player);
+struct settings *init_settings(void);
+int free_settings(struct settings *settings);
+int is_argument(char *argument);
+int is_valid_parameter(char *parameter,char *long_form, char *short_form);
+struct settings *parse_cmd_args(int argc, char *argv[]);
