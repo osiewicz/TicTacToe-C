@@ -88,11 +88,11 @@ int game(int AI_on,const struct settings *settings)
 
 int get_random_value(void)
 {
-	/* Get random value in range 0 <= value <= end*/
 	time_t tt;
 	int value = 0;
 	value = time(&tt);
 	srand(value);
+	value = rand();
 	return value;
 }
 
