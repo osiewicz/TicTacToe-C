@@ -10,5 +10,5 @@
 #include <stdarg.h>
 
 void eprintf(char *fmt,...);
-const char **load_strings(char *language);
+int load_strings(char *language,char ***destination);
 

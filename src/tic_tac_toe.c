@@ -6,6 +6,7 @@ int main(int argc,char *argv[])
 {
 	struct settings *settings = parse_cmd_args(argc,argv);
 	main_menu(settings);
+	win_check(NULL,settings->board_size,0);
 	free_settings(settings);
 	return 0;
 }
@@ -60,12 +61,12 @@ int game(int AI_on,const struct settings *settings)
 			input = strtol(buffer,NULL,10);
 			memset(buffer,0,5);
 		}
-		response = move(input, current_player,board,settings->board_size);
+		response = take_spot(input, current_player,board,settings->board_size);
 		while(response == -1 && (AI_on == 0 || current_player == -1)) {
 			printf("%s\n", settings->game_strings[4]);
 			fgets(buffer, sizeof(buffer), stdin);
 			input = strtol(buffer,NULL,10);
-			response = move(input, current_player,board,settings->board_size);
+			response = take_spot(input, current_player,board,settings->board_size);
 		}
 		printf("%s %s %d!\n",(current_player == -1 ? p1_name : p2_name),settings->game_strings[5],input);
 		print_board(board,settings->board_size,settings->p1_sign,settings->p2_sign,
@@ -96,7 +97,7 @@ int get_random_value(void)
 	return value;
 }
 
-int move(int field, int current_player,char *board,int board_size)
+int take_spot(int field, int current_player,char *board,int board_size)
 {
 	if(field <= 0 || field > board_size * board_size){
 		return -1;
@@ -172,6 +173,20 @@ unsigned **wins_generator(int board_size){
 	return wins;
 }
 
+int free_wins(unsigned **wins, int board_size)
+{
+	if(board_size == 1){
+		free(wins[0]);
+	}
+	else{
+		for(int i=0;i<board_size*2+2;i++){
+			free(wins[i]);
+		}
+	}
+	free(wins);
+	return 0;
+}
+
 void printf_wins(unsigned **wins,int board_size)
 {
 	/* For debugging purposes only */
@@ -194,6 +209,11 @@ int win_check(char *board,int board_size,int current_player)
 	static unsigned **wins = NULL;
 	if(wins == NULL){
 		wins = wins_generator(board_size);
+	}
+	if(board == NULL && current_player == 0){
+		free_wins(wins,board_size);
+		wins = NULL;
+		return -2;
 	}
 	for(i = 0;i<2*board_size+2;i++){
 		for(p=0;p<board_size;p++){
@@ -264,9 +284,10 @@ struct settings *init_settings(void)
 
 int free_settings(struct settings *settings)
 {
-	for(int i=0;i<15;i++){
+	for(int i=0;i<settings->string_count;i++){
 		free(settings->game_strings[i]);
 	}
+	free(settings->game_strings);
 	free(settings);
 	return 0;
 }
@@ -336,7 +357,7 @@ struct settings *parse_cmd_args(int argc, char *argv[]) {
 				printf("%s: Unknown command-line argument: %s\n",argv[0],argv[i]);
 		}
 	}
-	result->game_strings = (char**)load_strings(result->language);
+	result->string_count = load_strings(result->language,&result->game_strings);
 	return result;
 }
 

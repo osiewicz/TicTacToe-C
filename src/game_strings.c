@@ -2,33 +2,40 @@
 
 static FILE *open_lang_file(const char *language)
 {
+	int core_length = strlen(language);
 	FILE *fp;
-	char *filename = malloc(sizeof(char) * (strlen(language) + 7));
+	char *filename = calloc(core_length + 7,sizeof(char));
 	filename[0] = '.';
-	memcpy(filename + 1, language, strlen(language));
-	strncat(filename + strlen(language), ".lang", 5);
+	strcat(filename + 1, language);
+	strncat(filename, ".lang", 5);
 	if (access(filename, F_OK) != -1) {
 		fp = fopen(filename, "r");
 		if (!fp) {
 			eprintf("open_lang_file: Failed to open file .%s.lang:", language);
 		}
-		free(filename);
 	} else {
 		eprintf("open_lang_file: File \".%s.lang\" was not found:", language);
 	}
+	free(filename);
 	return fp;
 }
 
-const char **load_strings(char *language)
+int load_strings(char *language,char ***destination)
 {
 	char *newline_char;
-	static char *(text)[15];
+	char **text=NULL;
 	int i;
 	FILE *fp = open_lang_file(language);
 	size_t t = 0;
 
 	if (fp) {
-		for(i=0;i<15 && !feof(fp);i++){
+		for(i=0;!feof(fp);i++){
+			char **temp=NULL;
+			temp = realloc(text, sizeof(char*)*(i+1));
+			if(!temp){
+				eprintf("load_strings: Error reallocating memory: ");
+			}
+			text = temp;
 			text[i] = NULL;
 			t = 0;
 			/* Getline allocates memory when passed NULL and t = 0*/
@@ -42,7 +49,8 @@ const char **load_strings(char *language)
 	} else {
 		eprintf("Failed to open language file");
 	}
-	return (const char**)text;
+	*destination = text;
+	return i;
 }
 
 void eprintf(char *fmt, ...)
