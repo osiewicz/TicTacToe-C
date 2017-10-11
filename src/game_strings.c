@@ -41,8 +41,9 @@ int load_strings(char *language,char ***destination)
 			/* Getline allocates memory when passed NULL and t = 0*/
 			if (getline(&(text)[i],&t,fp)>0){
 				newline_char=strpbrk(text[i],"\n");
-				*newline_char=0;
-				continue;
+				if(newline_char != NULL){
+					*newline_char=0;
+				}
 			}
 		}
 		fclose(fp);
