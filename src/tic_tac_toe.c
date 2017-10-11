@@ -46,8 +46,7 @@ int game(int AI_on,const struct settings *settings)
 	p2_name = (AI_on == 1 ? settings->AI_name : settings->p2_name);
 
 	printf("%s\n",settings->game_strings[1]);
-	print_board(board,settings->board_size,settings->p1_sign,settings->p2_sign,
-			settings->ff_sign);
+	print_board_field_numbers(settings->board_size);
 
 	printf("%s%s\n", ((current_player==-1) ? p1_name : p2_name), settings->game_strings[2]);
 
@@ -142,6 +141,17 @@ void print_board(char *board, int board_size,char p1_sign,char p2_sign,char ff_s
 			} else {
 				printf("|");
 			}
+	}
+	printf("\n");
+}
+
+void print_board_field_numbers(int board_size)
+{
+	int n = board_size*board_size;
+	int digits = snprintf(0, 0, "%+d", n) - 1;
+	for(int i = 1; i <= n; i++) {
+			// Print field number, padded to line up nicely
+			printf("%*d%c", digits, i, i % board_size == 0 ? '\n' : '|');
 	}
 	printf("\n");
 }
