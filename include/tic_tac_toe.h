@@ -28,6 +28,7 @@ int get_random_value(void);
 int take_spot(int field, int current_player,char *board,int board_size);
 int fields_count(char *board,int board_size,int field);
 void print_board(char *board,int board_size,char p1_sign,char p2_sign,char ff_sign);
+void print_board_field_numbers(int board_size);
 unsigned **win_generator(int board_size);
 int free_wins(unsigned **wins,int board_size);
 void printf_wins(unsigned **wins,int board_size);
